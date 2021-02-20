@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30611.23
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WirelessControlBox", "WirelessControlBox\WirelessControlBox.vcxproj", "{C5F80730-F44F-4478-BDAE-6634EFC2CA88}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SPI-1.0", "WirelessControlBox\Libraries\SPI\1.0\SPI\SPI-1.0.vcxitems", "{147BA986-F7E0-4B08-973F-0899A660EBFA}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Wire-1.0", "WirelessControlBox\Libraries\Wire\1.0\Wire\Wire-1.0.vcxitems", "{EA3DDFE0-033E-46BF-B429-78B702C8CC03}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UTFT-0.0.0", "WirelessControlBox\Libraries\UTFT\0.0.0\UTFT\UTFT-0.0.0.vcxitems", "{FC43FB80-ACBB-4F5B-BBCF-222AF18F1F32}"
+EndProject
+Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		WirelessControlBox\Libraries\SPI\1.0\SPI\SPI-1.0.vcxitems*{147ba986-f7e0-4b08-973f-0899a660ebfa}*SharedItemsImports = 9
+		WirelessControlBox\Libraries\SPI\1.0\SPI\SPI-1.0.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		WirelessControlBox\Libraries\UTFT\0.0.0\UTFT\UTFT-0.0.0.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		WirelessControlBox\Libraries\Wire\1.0\Wire\Wire-1.0.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		WirelessControlBox\Libraries\Wire\1.0\Wire\Wire-1.0.vcxitems*{ea3ddfe0-033e-46bf-b429-78b702c8cc03}*SharedItemsImports = 9
+		WirelessControlBox\Libraries\UTFT\0.0.0\UTFT\UTFT-0.0.0.vcxitems*{fc43fb80-acbb-4f5b-bbcf-222af18f1f32}*SharedItemsImports = 9
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|x86.ActiveCfg = Debug|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|x86.Build.0 = Debug|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|x86.ActiveCfg = Release|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {19F4666E-F15A-4A0E-9C3D-E5EDE23B5E0B}
+	EndGlobalSection
+EndGlobal
