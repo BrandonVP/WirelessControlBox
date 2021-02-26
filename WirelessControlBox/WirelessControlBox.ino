@@ -371,16 +371,20 @@ void waitForItRect(int x1, int y1, int x2, int y2, int txId, byte data[])
 
     
     uint8_t  ss[1];
-    unsigned long timer = millis();
-    while ((millis() - timer < 10))
+    unsigned long timer1 = millis();
+    unsigned long timer2 = millis();
+    while ((millis() - timer1 < 5))
     {
         readGT9271TouchAddr(0x814e, ss, 1);
         if ((ss[0] & 0x80) != 0)  // touch status   Software touch interrupt  
         {
             readGT9271TouchLocation(touchLocations, 10);
-            can1.sendFrame(txId, data);
-            delay(100);
-            timer = millis();
+            if ((millis() - timer2 > 70))
+            {
+                can1.sendFrame(txId, data);
+                timer2 = millis();
+            }
+            timer1 = millis();
         }
     }
     
