@@ -79,7 +79,7 @@ uint8_t* CANBus::getFrame(uint16_t IDFilter)
     // If buffer inbox has a message
     if (Can0.available() > 0) 
     {
-        Can0.read(incoming);
+        Can0.readFrame(incoming);
         for (int i = 0; i < 8; i++)
         {
             MSGFrame[i] = incoming.byte[i];
@@ -107,7 +107,7 @@ bool CANBus::msgCheck(uint16_t ID, uint8_t value, int8_t pos)
     // If buffer inbox has a message
     if (Can0.available() > 0)
     {
-        Can0.read(incoming);
+        Can0.readFrame(incoming);
         if (incoming.id == ID && incoming.byte[pos] == value)
         {
             return true;
@@ -125,7 +125,7 @@ uint16_t CANBus::getFrameID()
     // If buffer inbox has a message
     if (Can0.available() > 0)
     {
-        Can0.read(incoming);
+        Can0.readFrame(incoming);
     }
     return incoming.id;
 }

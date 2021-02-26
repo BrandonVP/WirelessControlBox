@@ -23,22 +23,14 @@ uint8_t SerialManager::available()
 	}
 }
 
-void SerialManager::read(CAN_FRAME1 & rxCAN)
+void SerialManager::readFrame(CAN_FRAME1 &rxCAN)
 {
-	if (Serial3.available() > 9)
+	if ((Serial3.available() > SIZE_OF_FRAME) && (Serial3.read() == FLOW_CONTROL_VALUE))
 	{
-		uint8_t test = Serial3.read();
-		if ( test == 0xFF)
+		rxCAN.id = Serial3.read();
+		for (uint8_t i = 0; i < ARRAY_SIZE; i++)
 		{
-			rxCAN.id = Serial3.read();
-			rxCAN.byte[0] = Serial3.read();
-			rxCAN.byte[1] = Serial3.read();
-			rxCAN.byte[2] = Serial3.read();
-			rxCAN.byte[3] = Serial3.read();
-			rxCAN.byte[4] = Serial3.read();
-			rxCAN.byte[5] = Serial3.read();
-			rxCAN.byte[6] = Serial3.read();
-			rxCAN.byte[7] = Serial3.read();
+			rxCAN.byte[i] = Serial3.read();
 		}
 	}
 }
@@ -47,12 +39,8 @@ void SerialManager::sendFrame(CAN_FRAME1 txCAN)
 {
 	Serial3.write(0xFF);
 	Serial3.write(txCAN.id);
-	Serial3.write(txCAN.byte[0]);
-	Serial3.write(txCAN.byte[1]);
-	Serial3.write(txCAN.byte[2]);
-	Serial3.write(txCAN.byte[3]);
-	Serial3.write(txCAN.byte[4]);
-	Serial3.write(txCAN.byte[5]);
-	Serial3.write(txCAN.byte[6]);
-	Serial3.write(txCAN.byte[7]);
+	for (uint8_t i = 0; i < ARRAY_SIZE; i++)
+	{
+		Serial3.write(txCAN.byte[i]);
+	}
 }

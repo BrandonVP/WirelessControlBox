@@ -9,6 +9,10 @@
 	#include "WProgram.h"
 #endif
 
+#define FLOW_CONTROL_VALUE 0xFF
+#define SIZE_OF_FRAME 10
+#define ARRAY_SIZE 9
+
 typedef struct CAN_FRAME1 {
 	uint16_t id;
 	uint8_t byte[8];
@@ -22,7 +26,7 @@ private:
 public:
 	uint8_t available();
 	void startSerial();
-	void read(CAN_FRAME1&);
+	void readFrame(CAN_FRAME1&);
 	void sendFrame(CAN_FRAME1);
 };
 
