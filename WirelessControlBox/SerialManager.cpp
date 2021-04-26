@@ -6,7 +6,7 @@
 
 void SerialManager::startSerial()
 {
-	//Serial3.begin(19200); // Tx ok, Rx ok
+	//Serial3.begin(19200); 
 }
 
 
