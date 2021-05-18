@@ -3,6 +3,7 @@
 #include <UTFT.h>
 #include <SPI.h>
 #include <Wire.h>
+#include <avr/pgmspace.h>
 
 uint8_t addr = 0x5d;  //CTP IIC ADDRESS
 // Declare which fonts we will be using
@@ -16,7 +17,7 @@ extern uint8_t SmallFont[];
 
 UTFT myGLCD(SSD1963_800480, 38, 39, 40, 41);  //(byte model, int RS, int WR, int CS, int RST)
 
-unsigned char  GTP_CFG_DATA[] =
+const PROGMEM unsigned char GTP_CFG_DATA[] =
 {
 
 0x00,0x20,0x03,0xE0,0x01,0x0A,0x0D,0x00,

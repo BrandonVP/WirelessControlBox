@@ -30,8 +30,7 @@ constexpr auto ARM2_CONTROL = 0x0B0;
 // Bitmap
 #define BUFFPIXEL 20
 
-// Used to prevent physical button doubletap
-#define BUTTON_DELAY 200
+#define DEG "deg"
 
 // Declaring a method because the compiler was crying about not finding it...
 void pageControl(int page, bool value);

@@ -1,7 +1,8 @@
 #pragma once
+#include <avr/pgmspace.h>
 // Robotic Arm bitmap
 // 5 columns * 8 bits = 40 x 40 rows
-static const unsigned char robotarm[] = 
+const PROGMEM unsigned char robotarm[] =
 {
   0x00,0x00,0xC0,0x01,0x00,
   0x00,0x00,0xF0,0x07,0x00,

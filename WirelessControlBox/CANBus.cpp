@@ -45,7 +45,7 @@ void CANBus::sendFrame(uint16_t id, byte* frame)
     myFrame.byte[7] = frame[7];
 
     // Debugging
-    
+    /*
     Serial.print("MSG: ");
     Serial.print(frame[0]);
     Serial.print(" ");
@@ -62,7 +62,7 @@ void CANBus::sendFrame(uint16_t id, byte* frame)
     Serial.print(frame[6]);
     Serial.print(" ");
     Serial.println(frame[7]);
-    
+    */
 
     // Send object out
     Can0.sendFrame(myFrame);
@@ -103,7 +103,7 @@ bool CANBus::msgCheck(uint16_t ID, uint8_t value, int8_t pos)
 {
     // Create object to save message
     CAN_FRAME1 incoming;
-    Serial.println("msgCheck");
+    //Serial.println("msgCheck");
     // If buffer inbox has a message
     if (Can0.available() > 0)
     {

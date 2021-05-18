@@ -6,12 +6,10 @@
 #pragma once
 #include <Wire.h>
 #include <LinkedList.h>
-//#include <UTouchCD.h>
 #include <memorysaver.h>
 #include <SD.h>
 #include <SPI.h>
 #include <UTFT.h>
-//#include <UTouch.h>
 #include "LCD.h"
 #include "AxisPos.h"
 #include "CANBus.h"
@@ -20,12 +18,6 @@
 #include "definitions.h"
 #include "icons.h"
 #include <stdint.h>
-
-// Initialize display
-//(byte model, int RS, int WR, int CS, int RST, int SER)
-//UTFT myGLCD(ILI9488_16, 7, 38, 9, 10);
-//RTP: byte tclk, byte tcs, byte din, byte dout, byte irq
-//UTouch  myTouch(2, 6, 3, 4, 5);
 
 // For touch controls
 int x, y;
@@ -404,59 +396,62 @@ void waitForItRect(int x1, int y1, int x2, int y2, int txId, byte data[])
     Manual control Functions
 ===========================================================*/
 // Draw the manual control page
-void drawManualControl()
+//void drawManualControl(int x = 146, int y = 80)
+void drawManualControl(int x = 146, int y = 80, bool drawGrip = true)
 {
     // Clear LCD to be written 
-    drawSquareBtn(141, 1, 478, 319, "", themeBackground, themeBackground, themeBackground, CENTER);
+    drawSquareBtn(141, 1, 799, 479, "", themeBackground, themeBackground, themeBackground, CENTER);
 
     // Print page title
-    drawSquareBtn(180, 10, 400, 45, "Manual Control", themeBackground, themeBackground, menuBtnColor, CENTER);
+    drawSquareBtn((x + 34), (y - 70), (x + 254), (y - 35), F("Manual Control"), themeBackground, themeBackground, menuBtnColor, CENTER);
 
     // Manual control axis labels
     //myGLCD.setColor(VGA_BLACK);
     //myGLCD.setBackColor(VGA_BLACK);
     //myGLCD.print("Axis", CENTER, 60);
     int j = 1;
-    for (int i = 146; i < (480 - 45); i = i + 54) {
+    for (int i = x; i < (x + 334 - 45); i = i + 54) {
         myGLCD.setColor(menuBtnColor);
         myGLCD.setBackColor(themeBackground);
-        myGLCD.printNumI(j, i + 20, 60);
+        myGLCD.printNumI(j, i + 20, y - 20);
         j++;
     }
 
     // Draw the upper row of movement buttons
         // x_Start, y_start, x_Stop, y_stop
-    for (int i = 146; i < (480 - 54); i = i + 54) {
-        drawSquareBtn(i, 80, i + 54, 140, "/\\", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    for (int i = x; i < (x + 334 - 45); i = i + 54) {
+        drawSquareBtn(i, y, (i + 54), (y + 60), F("/\\"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
     }
 
     // Draw the bottom row of movement buttons
     // x_Start, y_start, x_Stop, y_stop
-    for (int i = 146; i < (480 - 54); i = i + 54) {
-        drawSquareBtn(i, 140, i + 54, 200, "\\/", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    for (int i = x; i < (x + 334 - 54); i = i + 54) {
+        drawSquareBtn(i, (y + 60), i + 54, (y + 120), F("\\/"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
     }
 
     // Draw Select arm buttons
-    drawSquareBtn(165, 225, 220, 265, "Arm", themeBackground, themeBackground, menuBtnColor, CENTER);
+    drawSquareBtn((x + 19), (y + 125), x + 60, (y + 165), F("Arm"), themeBackground, themeBackground, menuBtnColor, CENTER);
     if (txIdManual == ARM1_M)
     {
-        drawSquareBtn(146, 260, 200, 315, "1", menuBtnText, menuBtnBorder, menuBtnColor, CENTER);
-        drawSquareBtn(200, 260, 254, 315, "2", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+        drawSquareBtn(x, (y + 160), x + 54, (y + 215), "1", menuBtnText, menuBtnBorder, menuBtnColor, CENTER);
+        drawSquareBtn((x + 54), (y + 160), x + 108, (y + 215), "2", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
     }
     else if (txIdManual == ARM2_M)
     {
-        drawSquareBtn(146, 260, 200, 315, "1", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
-        drawSquareBtn(200, 260, 254, 315, "2", menuBtnText, menuBtnBorder, menuBtnColor, CENTER);
+        drawSquareBtn(x, (y + 160), x + 54, (y + 215), "1", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+        drawSquareBtn((x + 54), (y + 160), x + 108, (y + 215), "2", menuBtnText, menuBtnBorder, menuBtnColor, CENTER);
     }
 
-    // Draw grip buttons
-    drawSquareBtn(270, 225, 450, 265, "Gripper", themeBackground, themeBackground, menuBtnColor, CENTER);
-    drawSquareBtn(270, 260, 360, 315, "Open", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
-    drawSquareBtn(360, 260, 450, 315, "Close", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    if (drawGrip)
+    {
+        // Draw grip buttons
+        drawSquareBtn(270, 205, 450, 245, F("Gripper"), themeBackground, themeBackground, menuBtnColor, CENTER);
+        drawSquareBtn(270, 240, 360, 295, F("Open"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+        drawSquareBtn(360, 240, 450, 295, F("Close"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    }
 
     return;
 }
-
 
 // Draw page button function
 void manualControlButtons()
@@ -610,7 +605,7 @@ void manualControlButtons()
 void drawView()
 {
     // Clear LCD to be written 
-    drawSquareBtn(141, 1, 478, 319, "", themeBackground, themeBackground, themeBackground, CENTER);
+    drawSquareBtn(141, 1, 799, 479, "", themeBackground, themeBackground, themeBackground, CENTER);
 
     // Print arm logo
     
@@ -626,21 +621,21 @@ void drawView()
     uint8_t yStart = 35;
     uint8_t yStop = 75;
     // Arm 1
-    drawRoundBtn(310, 5, 415, 40, "Arm2", themeBackground, themeBackground, menuBtnColor, CENTER);
-    drawRoundBtn(310, yStart + 0, 415, yStop + 0, "deg", menuBackground, menuBackground, menuBtnColor, RIGHT);
-    drawRoundBtn(310, yStart + 45, 415, yStop + 45, "deg", menuBackground, menuBackground, menuBtnColor, RIGHT);
-    drawRoundBtn(310, yStart + 90, 415, yStop + 90, "deg", menuBackground, menuBackground, menuBtnColor, RIGHT);
-    drawRoundBtn(310, yStart + 135, 415, yStop + 135, "deg", menuBackground, menuBackground, menuBtnColor, RIGHT);
-    drawRoundBtn(310, yStart + 180, 415, yStop + 180, "deg", menuBackground, menuBackground, menuBtnColor, RIGHT);
-    drawRoundBtn(310, yStart + 225, 415, yStop + 225, "deg", menuBackground, menuBackground, menuBtnColor, RIGHT);
+    drawRoundBtn(310, 5, 415, 40, F("Arm2"), themeBackground, themeBackground, menuBtnColor, CENTER);
+    drawRoundBtn(310, yStart + 0, 415, yStop + 0, DEG, menuBackground, menuBackground, menuBtnColor, RIGHT);
+    drawRoundBtn(310, yStart + 45, 415, yStop + 45, DEG, menuBackground, menuBackground, menuBtnColor, RIGHT);
+    drawRoundBtn(310, yStart + 90, 415, yStop + 90, DEG, menuBackground, menuBackground, menuBtnColor, RIGHT);
+    drawRoundBtn(310, yStart + 135, 415, yStop + 135, DEG, menuBackground, menuBackground, menuBtnColor, RIGHT);
+    drawRoundBtn(310, yStart + 180, 415, yStop + 180, DEG, menuBackground, menuBackground, menuBtnColor, RIGHT);
+    drawRoundBtn(310, yStart + 225, 415, yStop + 225, DEG, menuBackground, menuBackground, menuBtnColor, RIGHT);
     // Arm 2
-    drawRoundBtn(205, 5, 305, 40, "Arm1", themeBackground, themeBackground, menuBtnColor, CENTER);
-    drawRoundBtn(200, yStart + 0, 305, yStop + 0, "deg", menuBackground, menuBackground, menuBtnColor, RIGHT);
-    drawRoundBtn(200, yStart + 45, 305, yStop + 45, "deg", menuBackground, menuBackground, menuBtnColor, RIGHT);
-    drawRoundBtn(200, yStart + 90, 305, yStop + 90, "deg", menuBackground, menuBackground, menuBtnColor, RIGHT);
-    drawRoundBtn(200, yStart + 135, 305, yStop + 135, "deg", menuBackground, menuBackground, menuBtnColor, RIGHT);
-    drawRoundBtn(200, yStart + 180, 305, yStop + 180, "deg", menuBackground, menuBackground, menuBtnColor, RIGHT);
-    drawRoundBtn(200, yStart + 225, 305, yStop + 225, "deg", menuBackground, menuBackground, menuBtnColor, RIGHT);
+    drawRoundBtn(205, 5, 305, 40, F("Arm1"), themeBackground, themeBackground, menuBtnColor, CENTER);
+    drawRoundBtn(200, yStart + 0, 305, yStop + 0, DEG, menuBackground, menuBackground, menuBtnColor, RIGHT);
+    drawRoundBtn(200, yStart + 45, 305, yStop + 45, DEG, menuBackground, menuBackground, menuBtnColor, RIGHT);
+    drawRoundBtn(200, yStart + 90, 305, yStop + 90, DEG, menuBackground, menuBackground, menuBtnColor, RIGHT);
+    drawRoundBtn(200, yStart + 135, 305, yStop + 135, DEG, menuBackground, menuBackground, menuBtnColor, RIGHT);
+    drawRoundBtn(200, yStart + 180, 305, yStop + 180, DEG, menuBackground, menuBackground, menuBtnColor, RIGHT);
+    drawRoundBtn(200, yStart + 225, 305, yStop + 225, DEG, menuBackground, menuBackground, menuBtnColor, RIGHT);
 }
 
 // No buttons, consider adding a refresh mechanism 
@@ -655,19 +650,22 @@ void drawProgramScroll(int scroll)
     // selected position = scroll * position
     // if selected draw different color border
     int y = 50;
+    int x = 150;
+    uint8_t height = 40;
+    int width = 300;
 
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 8; i++)
     {
         if (sdCard.fileExists(aList[i + scroll]))
         {
-            drawSquareBtn(150, y, 410, y + 40, (aList[i + scroll]), menuBackground, menuBtnBorder, menuBtnText, LEFT);
+            drawSquareBtn(x, y, (x + width), (y + height), (aList[i + scroll]), menuBackground, menuBtnBorder, menuBtnText, LEFT);
         }
         else
         {
-            drawSquareBtn(150, y, 410, y + 40, (aList[i + scroll] + "-Empty"), menuBackground, menuBtnBorder, menuBtnText, LEFT);
+            drawSquareBtn(x, y, (x + width), (y + height), (aList[i + scroll] + F("-Empty")), menuBackground, menuBtnBorder, menuBtnText, LEFT);
         }
 
-        y = y + 40;
+        y = y + height;
         //scroll++;
     }
 }
@@ -676,24 +674,25 @@ void drawProgramScroll(int scroll)
 void drawProgram(int scroll = 0)
 {
     // Clear LCD to be written
-    drawSquareBtn(141, 1, 478, 319, "", themeBackground, themeBackground, themeBackground, CENTER);
+    drawSquareBtn(141, 1, 799, 479, "", themeBackground, themeBackground, themeBackground, CENTER);
 
     // Print page title
-    drawSquareBtn(180, 10, 400, 45, "Program", themeBackground, themeBackground, menuBtnColor, CENTER);
+    drawSquareBtn(180, 10, 400, 45, F("Program"), themeBackground, themeBackground, menuBtnColor, CENTER);
 
     // Scroll buttons
     myGLCD.setColor(menuBtnColor);
     myGLCD.setBackColor(themeBackground);
-    drawSquareBtn(420, 100, 470, 150, "/\\", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
-    drawSquareBtn(420, 150, 470, 200, "\\/", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawSquareBtn(460, 100, 510, 150, F("/\\"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawSquareBtn(460, 150, 510, 200, F("\\/"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
 
     // Draws program scroll box with current scroll value
     drawProgramScroll(scroll);
 
     // Draw program buttons
-    drawSquareBtn(150, 260, 250, 300, "Open", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
-    drawSquareBtn(255, 260, 355, 300, "Load", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
-    drawSquareBtn(360, 260, 460, 300, "Delete", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawSquareBtn(150, 430, 250, 470, F("Open"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawSquareBtn(255, 430, 355, 470, F("Load"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawSquareBtn(360, 430, 460, 470, F("Delete"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawSquareBtn(465, 430, 575, 470, F("Rename"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
 }
 
 // Deletes current selected program from 
@@ -850,7 +849,6 @@ void programRun()
         // Wait for confirmation
         while (isWait)
         {
-            Serial.print("Waiting on isWait");
             if (can1.msgCheck(incID, 0x03, 0x01))
             {
                 isWait = false;
@@ -881,40 +879,54 @@ void programButtons()
             if ((y >= 50) && (y <= 90))
             {
                 // 1st position of scroll box
-                waitForItRect(150, 50, 410, 90);
+                waitForItRect(150, 50, 450, 90);
                 //Serial.println(1 + scroll);
                 selectedProgram = 0 + scroll;
             }
             if ((y >= 90) && (y <= 130))
             {
                 // 2nd position of scroll box
-                waitForItRect(150, 90, 410, 130);
+                waitForItRect(150, 90, 450, 130);
                 //Serial.println(2 + scroll);
                 selectedProgram = 1 + scroll;
             }
             if ((y >= 130) && (y <= 170))
             {
                 // 3d position of scroll box
-                waitForItRect(150, 130, 410, 170);
+                waitForItRect(150, 130, 450, 170);
                 //Serial.println(3 + scroll);
                 selectedProgram = 2 + scroll;
             }
             if ((y >= 170) && (y <= 210))
             {
                 // 4th position of scroll box
-                waitForItRect(150, 170, 410, 210);
+                waitForItRect(150, 170, 450, 210);
                 //Serial.println(4 + scroll);
                 selectedProgram = 3 + scroll;
             }
             if ((y >= 210) && (y <= 250))
             {
                 // 5th position of scroll box
-                waitForItRect(150, 210, 410, 250);
+                waitForItRect(150, 210, 450, 250);
                 //Serial.println(5 + scroll);
                 selectedProgram = 4 + scroll;
             }
+            if ((y >= 250) && (y <= 290))
+            {
+                // 5th position of scroll box
+                waitForItRect(150, 250, 450, 290);
+                //Serial.println(6 + scroll);
+                selectedProgram = 4 + scroll;
+            }
+            if ((y >= 290) && (y <= 330))
+            {
+                // 5th position of scroll box
+                waitForItRect(150, 290, 450, 330);
+                //Serial.println(7 + scroll);
+                selectedProgram = 4 + scroll;
+            }
         }
-        if ((x >= 420) && (x <= 470))
+        if ((x >= 460) && (x <= 510))
         {
             if ((y >= 100) && (y <= 150))
             {
@@ -926,9 +938,6 @@ void programButtons()
                     drawProgramScroll(scroll);
                 }
             }
-        }
-        if ((x >= 420) && (x <= 470))
-        {
             if ((y >= 150) && (y <= 200))
             {
                 // Scroll down
@@ -940,13 +949,12 @@ void programButtons()
                 }
             }
         }
-
-        if ((y >= 260) && (y <= 300))
+        if ((y >= 430) && (y <= 470))
         {
             if ((x >= 150) && (x <= 250))
             {
                 // Open program
-                waitForItRect(150, 260, 250, 300);
+                waitForItRect(150, 430, 250, 470);
                 runList.clear();
                 loadProgram();
                 programOpen = true;
@@ -955,7 +963,7 @@ void programButtons()
             if ((x >= 255) && (x <= 355))
             {
                 // Load program
-                waitForItRect(255, 260, 355, 300);
+                waitForItRect(255, 430, 355, 470);
                 runList.clear();
                 loadProgram();
 
@@ -963,13 +971,19 @@ void programButtons()
             if ((x >= 360) && (x <= 460))
             {
                 // Delete program
-                waitForItRect(360, 260, 460, 300);
-                bool result = errorMSG("Confirmation", "Permanently", "Delete File?");
+                waitForItRect(360, 430, 460, 470);
+                bool result = errorMSG(F("Confirmation"), F("Permanently"), F("Delete File?"));
                 if (result)
                 {
                     programDelete();
                 }
                 drawProgram();
+            }
+            if ((x >= 465) && (x <= 565))
+            {
+                // Rename program
+                waitForItRect(465, 430, 565, 470);
+
             }
         }
     }
@@ -986,9 +1000,13 @@ void drawProgramEditScroll(uint8_t scroll = 0)
     myGLCD.setFont(SmallFont);
     uint8_t nodeSize = runList.size();
     Serial.println(nodeSize);
+    int y = 50;
+    int x = 150;
+    uint8_t height = 40;
+    int width = 295;
+
     // Each node should be listed with all information, might need small text
-    int row = 50;
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 9; i++)
     {
         String position = String(i + scroll);
         String a = ":";
@@ -998,14 +1016,14 @@ void drawProgramEditScroll(uint8_t scroll = 0)
             + b + String(runList.get(i + scroll)->getA6()) + b + String(runList.get(i + scroll)->getGrip()) + b + String(runList.get(i + scroll)->getID());
         if (i + scroll < nodeSize)
         {
-            drawSquareBtn(150, row, 410, row + 40, label, menuBackground, menuBtnBorder, menuBtnText, LEFT);
+            drawSquareBtn(x, y, (x + width), (y + height), label, menuBackground, menuBtnBorder, menuBtnText, LEFT);
         }
         else
         {
-            drawSquareBtn(150, row, 410, row + 40, "", menuBackground, menuBtnBorder, menuBtnText, LEFT);
+            drawSquareBtn(x, y, (x + width), (y + height), "", menuBackground, menuBtnBorder, menuBtnText, LEFT);
         }
 
-        row = row + 40;
+        y = (y + 40);
         //scroll++;
     }
     // Load linked list from SD card unless already in linked list
@@ -1022,36 +1040,35 @@ void drawProgramEditScroll(uint8_t scroll = 0)
 void drawProgramEdit(uint8_t scroll = 0)
 {
     // Clear LCD to be written
-    drawSquareBtn(141, 1, 478, 319, "", themeBackground, themeBackground, themeBackground, CENTER);
-
+    drawSquareBtn(141, 1, 799, 479, "", themeBackground, themeBackground, themeBackground, CENTER);
+    drawManualControl(460, 80, false);
     // Print page title
-    drawSquareBtn(180, 10, 400, 45, "Edit", themeBackground, themeBackground, menuBtnColor, CENTER);
+    drawSquareBtn(180, 10, 400, 45, F("Edit Program"), themeBackground, themeBackground, menuBtnColor, CENTER);
 
     // Scroll buttons
     myGLCD.setColor(menuBtnColor);
     myGLCD.setBackColor(themeBackground);
-    drawSquareBtn(420, 100, 470, 150, "/\\", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
-    drawSquareBtn(420, 150, 470, 200, "\\/", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawSquareBtn(460, 310, 510, 360, F("/\\"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawSquareBtn(460, 360, 510, 410, F("\\/"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
 
     // Draw program edit buttons
-    drawSquareBtn(150, 260, 230, 310, "Add", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
-    drawSquareBtn(230, 260, 310, 310, "Ins", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
-    drawSquareBtn(310, 260, 390, 310, "Del", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
-    drawSquareBtn(390, 260, 470, 310, "Save", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
-
-    drawSquareBtn(420, 50, 470, 90, "X", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
-
-    myGLCD.setFont(SmallFont);
+    drawSquareBtn(141, 430, 215, 470, F("Add"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawSquareBtn(215, 430, 290, 470, F("Ins"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawSquareBtn(290, 430, 365, 470, F("Del"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
     switch (gripStatus)
     {
-    case 0: drawSquareBtn(420, 210, 470, 250, " Open", menuBtnColor, menuBtnBorder, menuBtnText, LEFT);
+    case 0: drawSquareBtn(365, 430, 440, 470, F("Open"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
         break;
-    case 1: drawSquareBtn(420, 210, 470, 250, " Close", menuBtnColor, menuBtnBorder, menuBtnText, LEFT);
+    case 1: drawSquareBtn(365, 430, 440, 470, F("Close"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
         break;
-    case 2: drawSquareBtn(420, 210, 470, 250, " Grip", menuBtnColor, menuBtnBorder, menuBtnText, LEFT);
+    case 2: drawSquareBtn(365, 430, 440, 470, F("Grip"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
         break;
     }
-    myGLCD.setFont(BigFont);
+    drawSquareBtn(440, 430, 515, 470, F("Wait"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawSquareBtn(515, 430, 590, 470, F("Sens"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawSquareBtn(590, 430, 665, 470, F("Loop"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawSquareBtn(665, 430, 740, 470, F("Save"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawSquareBtn(740, 430, 799, 470, F("X"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
 }
 
 // Adds current position to program linked list 
@@ -1150,75 +1167,120 @@ void programEditButtons()
         x = 800 - touchLocations[0].x;
         y = 480 - touchLocations[0].y;
 
-        if ((x >= 150) && (x <= 410))
+        if ((x >= 150) && (x <= 445))
         {
             if ((y >= 50) && (y <= 90))
             {
-                waitForItRect(150, 50, 410, 90);
+                waitForItRect(150, 50, 445, 90);
                 //Serial.println(1 + scroll);
                 selectedNode = 0 + scroll;
                 drawProgramEditScroll(scroll);
             }
             if ((y >= 90) && (y <= 130))
             {
-                waitForItRect(150, 90, 410, 130);
+                waitForItRect(150, 90, 445, 130);
                 //Serial.println(2 + scroll);
                 selectedNode = 1 + scroll;
                 drawProgramEditScroll(scroll);
             }
             if ((y >= 130) && (y <= 170))
             {
-                waitForItRect(150, 130, 410, 170);
+                waitForItRect(150, 130, 445, 170);
                 //Serial.println(3 + scroll);
                 selectedNode = 2 + scroll;
                 drawProgramEditScroll(scroll);
             }
             if ((y >= 170) && (y <= 210))
             {
-                waitForItRect(150, 170, 410, 210);
+                waitForItRect(150, 170, 445, 210);
                 //Serial.println(4 + scroll);
                 selectedNode = 3 + scroll;
                 drawProgramEditScroll(scroll);
             }
             if ((y >= 210) && (y <= 250))
             {
-                waitForItRect(150, 210, 410, 250);
+                waitForItRect(150, 210, 445, 250);
                 //Serial.println(5 + scroll);
                 selectedNode = 4 + scroll;
                 drawProgramEditScroll(scroll);
             }
-        }
-        if ((x >= 420) && (x <= 470))
-        {
-            if ((y >= 50) && (y <= 90))
+            if ((y >= 250) && (y <= 290))
             {
-                // Cancel
-                waitForItRect(420, 50, 470, 90);
-                programOpen = false;
-                pageControl(2, false);
+                waitForItRect(150, 250, 445, 290);
+                //Serial.println(6 + scroll);
+                selectedNode = 4 + scroll;
+                drawProgramEditScroll(scroll);
             }
-            if ((y >= 100) && (y <= 150))
+            if ((y >= 290) && (y <= 330))
             {
-                waitForIt(420, 100, 470, 150);
+                waitForItRect(150, 290, 445, 330);
+                //Serial.println(7 + scroll);
+                selectedNode = 4 + scroll;
+                drawProgramEditScroll(scroll);
+            }
+            if ((y >= 330) && (y <= 370))
+            {
+                waitForItRect(150, 330, 445, 370);
+                //Serial.println(8 + scroll);
+                selectedNode = 4 + scroll;
+                drawProgramEditScroll(scroll);
+            }
+            if ((y >= 370) && (y <= 410))
+            {
+                waitForItRect(150, 370, 445, 410);
+                //Serial.println(9 + scroll);
+                selectedNode = 4 + scroll;
+                drawProgramEditScroll(scroll);
+            }
+        }
+        if ((x >= 460) && (x <= 510))
+        {
+            if ((y >= 310) && (y <= 360))
+            {
+                waitForIt(460, 310, 510, 360);
                 if (scroll > 0)
                 {
                     scroll--;
                     drawProgramEditScroll(scroll);
                 }
             }
-            if ((y >= 150) && (y <= 200))
+            if ((y >= 360) && (y <= 410))
             {
-                waitForIt(420, 150, 470, 200);
+                waitForIt(460, 360, 510, 410);
                 if (scroll < 10)
                 {
                     scroll++;
                     drawProgramEditScroll(scroll);
                 }
             }
-            if ((y >= 210) && (y <= 250))
+        }
+        if ((y >= 430) && (y <= 470))
+        {
+            if ((x >= 140) && (x <= 215))
+            {
+                // Add node
+                waitForItRect(141, 430, 215, 470);
+                addNode();
+                drawProgramEditScroll(scroll);
+            }
+            if ((x >= 215) && (x <= 290))
+            {
+                // Insert node
+                waitForItRect(215, 430, 290, 470);
+                addNode(selectedNode);
+                drawProgramEditScroll(scroll);
+            }
+            if ((x >= 290) && (x <= 365))
+            {
+                // Delete node
+                waitForItRect(290, 430, 365, 470);
+                deleteNode(selectedNode);
+                drawProgramEditScroll(scroll);
+            }
+            if ((x >= 365) && (x <= 440))
             {
                 // Grip
-                waitForItRect(420, 210, 470, 250);
+                waitForItRect(365, 430, 440, 470);
                 if (gripStatus < 2)
                 {
                     gripStatus++;
@@ -1230,53 +1292,47 @@ void programEditButtons()
                 switch (gripStatus)
                 {
                 case 0:
-                    myGLCD.setFont(SmallFont);
-                    drawSquareBtn(420, 210, 470, 250, " Open", menuBtnColor, menuBtnBorder, menuBtnText, LEFT);
-                    myGLCD.setFont(BigFont);
+                    drawSquareBtn(365, 430, 440, 470, F("Open"), menuBtnColor, menuBtnBorder, menuBtnText, LEFT);
                     break;
                 case 1:
-                    myGLCD.setFont(SmallFont);
-                    drawSquareBtn(420, 210, 470, 250, "Close", menuBtnColor, menuBtnBorder, menuBtnText, LEFT);
-                    myGLCD.setFont(BigFont);
+                    drawSquareBtn(365, 430, 440, 470, F("Shut"), menuBtnColor, menuBtnBorder, menuBtnText, LEFT);
                     break;
                 case 2:
-                    myGLCD.setFont(SmallFont);
-                    drawSquareBtn(420, 210, 470, 250, " Grip", menuBtnColor, menuBtnBorder, menuBtnText, LEFT);
-                    myGLCD.setFont(BigFont);
+                    drawSquareBtn(365, 430, 440, 470, F("Grip"), menuBtnColor, menuBtnBorder, menuBtnText, LEFT);
                     break;
                 }
             }
-        }
-
-        if ((y >= 260) && (y <= 310))
-        {
-            if ((x >= 150) && (x <= 230))
+            if ((x >= 440) && (x <= 515))
             {
-                // Add node
-                waitForItRect(150, 260, 230, 310);
-                addNode();
-                drawProgramEditScroll(scroll);
+                // Wait
+                waitForItRect(440, 430, 515, 470);
+                //
             }
-            if ((x >= 230) && (x <= 310))
+            if ((x >= 515) && (x <= 590))
             {
-                // Insert node
-                waitForItRect(230, 260, 310, 310);
-                addNode(selectedNode);
-                drawProgramEditScroll(scroll);
+                // Sensor
+                waitForItRect(515, 430, 590, 470);
+                //
             }
-            if ((x >= 310) && (x <= 390))
+            if ((x >= 590) && (x <= 665))
             {
-                // Delete node
-                waitForItRect(310, 260, 390, 310);
-                deleteNode(selectedNode);
-                drawProgramEditScroll(scroll);
+                // Loop
+                waitForItRect(590, 430, 665, 470);
+                //
             }
-            if ((x >= 390) && (x <= 470))
+            if ((x >= 665) && (x <= 740))
             {
                 // Save program
-                waitForItRect(390, 260, 470, 310);
+                waitForItRect(665, 430, 740, 470);
                 programDelete();
                 saveProgram();
+                programOpen = false;
+                pageControl(2, false);
+            }
+            if ((x >= 740) && (x <= 799))
+            {
+                // Cancel
+                waitForItRect(740, 430, 799, 470);
                 programOpen = false;
                 pageControl(2, false);
             }
@@ -1292,13 +1348,13 @@ void programEditButtons()
 // Draws the config page
 void drawConfig()
 {
-    drawSquareBtn(180, 10, 400, 45, "Configuration", themeBackground, themeBackground, menuBtnColor, CENTER);
+    drawSquareBtn(141, 1, 799, 479, "", themeBackground, themeBackground, menuBtnColor, CENTER);
     drawSquareBtn(141, 1, 478, 319, "", themeBackground, themeBackground, themeBackground, CENTER);
-    drawSquareBtn(180, 10, 400, 45, "Configuration", themeBackground, themeBackground, menuBtnColor, CENTER);
-    drawRoundBtn(150, 60, 300, 100, "Home Ch1", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
-    drawRoundBtn(310, 60, 460, 100, "Set Ch1", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
-    drawRoundBtn(150, 110, 300, 150, "Home Ch2", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
-    drawRoundBtn(310, 110, 460, 150, "Set ch2", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawSquareBtn(180, 10, 400, 45, F("Configuration"), themeBackground, themeBackground, menuBtnColor, CENTER);
+    drawRoundBtn(150, 60, 300, 100, F("Home Ch1"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawRoundBtn(310, 60, 460, 100, F("Set Ch1"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawRoundBtn(150, 110, 300, 150, F("Home Ch2"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawRoundBtn(310, 110, 460, 150, F("Set ch2"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
     return;
 }
 
@@ -1314,7 +1370,6 @@ void homeArm(uint8_t* armIDArray)
     delay(150);
     can1.sendFrame(armIDArray[2], data3);
 }
-
 
 // Button functions for config page
 void configButtons()
@@ -1378,11 +1433,11 @@ void drawMenu()
     drawSquareBtn(0, 0, 140, 480, "", menuBackground, menuBackground, menuBackground, CENTER);
 
     // Draw Menu Buttons
-    drawRoundBtn(10, 10, 130, 65, "1-VIEW", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
-    drawRoundBtn(10, 70, 130, 125, "2-PROG", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
-    drawRoundBtn(10, 130, 130, 185, "3-MOVE", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
-    drawRoundBtn(10, 190, 130, 245, "4-CONF", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
-    drawRoundBtn(10, 250, 130, 305, "5-EXEC", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawRoundBtn(10, 10, 130, 65, F("1-VIEW"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawRoundBtn(10, 70, 130, 125, F("2-PROG"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawRoundBtn(10, 130, 130, 185, F("3-MOVE"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawRoundBtn(10, 190, 130, 245, F("4-CONF"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawRoundBtn(10, 250, 130, 305, F("5-EXEC"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
 }
 
 // the setup function runs once when you press reset or power the board
@@ -1395,11 +1450,11 @@ void setup() {
     bool hasFailed = sdCard.startSD();
     if (!hasFailed)
     {
-        Serial.println("SD failed");
+        //Serial.println("SD failed");
     }
     else if (hasFailed)
     {
-        Serial.println("SD Running");
+        //Serial.println("SD Running");
     }
 
     randomSeed(analogRead(0));
@@ -1436,7 +1491,7 @@ void setup() {
     readGT9271TouchAddr(0x8047, bb, 2);
     while (bb[1] != 32)
     {
-        Serial.println("Capacitive touch screen initialized failure");
+        //Serial.println("Capacitive touch screen initialized failure");
         pinMode(GT9271_RESET, OUTPUT);
         pinMode(GT9271_INT, OUTPUT);
         digitalWrite(GT9271_RESET, LOW);
@@ -1453,7 +1508,7 @@ void setup() {
 
     }
 
-    Serial.println("Capacitive touch screen initialized success");
+    //Serial.println("Capacitive touch screen initialized success");
 
 
     // Setup the LCD
