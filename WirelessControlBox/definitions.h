@@ -17,7 +17,7 @@ constexpr auto ARM1_M = 0x0A3;
 constexpr auto ARM1_T = 0x0A2;
 constexpr auto ARM1_B = 0x0A1;
 constexpr auto ARM1_CONTROL = 0x0A0;
-#define CHANNEL1 0
+#define CHANNEL1 1
 
 // Arm 2 IDs
 constexpr auto ARM2_RX = 0x0C2;
@@ -25,12 +25,10 @@ constexpr auto ARM2_M = 0x0B3;
 constexpr auto ARM2_T = 0x0B2;
 constexpr auto ARM2_B = 0x0B1;
 constexpr auto ARM2_CONTROL = 0x0B0;
-#define CHANNEL2 1
+#define CHANNEL2 2
 
 // Bitmap
 #define BUFFPIXEL 20
 
 #define DEG "deg"
 
-// Declaring a method because the compiler was crying about not finding it...
-void pageControl(int page, bool value);

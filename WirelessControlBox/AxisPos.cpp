@@ -13,7 +13,7 @@ AxisPos::AxisPos()
 
 // Request current axis angle from either desired channel
 // Channel contains both TX and RX CAN address
-void AxisPos::armSearch(uint16_t * channel)
+void AxisPos::armSearch(CANBus can1, uint16_t * channel)
 {
 	// Used to end while loop when task is complete
 	bool isDone = true;
@@ -34,7 +34,7 @@ void AxisPos::armSearch(uint16_t * channel)
 	unsigned long timer = millis();
 
 	// While loop until reply is received or timeout occurs
-	while (isDone && (millis() - timer < 20))
+	while (isDone && (millis() - timer < 40))
 	{
 		// Request CAN frame addressed to paremeter ID
 		uint8_t* temp = can1.getFrame(channel[1]);
@@ -68,7 +68,7 @@ void AxisPos::armSearch(uint16_t * channel)
 	if (isResponseCh1 == true || isResponseCh2 == true)
 	{
 		// Always = true, hasMSGr resets to true for the CANBus class
-		isDone =can1.hasMSGr();
+		isDone = can1.hasMSGr();
 
 		// Clear out old angle values
 		// This is a bandaid for an undiscovered bug where axis 4-6 angles show up on the opposite channel when adding node to program
@@ -87,7 +87,7 @@ void AxisPos::armSearch(uint16_t * channel)
 		timer = millis();
 
 		// Repeat previous loop for axis 4-6
-		while (isDone && (millis() - timer < 20))
+		while (isDone && (millis() - timer < 40))
 		{
 			uint8_t* temp = can1.getFrame(channel[1]);
 			if (temp[0] == UPPER)
@@ -111,23 +111,25 @@ void AxisPos::armSearch(uint16_t * channel)
 }
 
 // Update and draw the Axis positions on the view page
-void AxisPos::drawAxisPos(UTFT LCD, bool channel)
+void AxisPos::drawAxisPos(UTFT LCD, CANBus can1, uint8_t channel)
 {
 	// ID arrays for the two channels
 	uint16_t channel1[2] = { ARM1ID, ARM1RXID };
 	uint16_t channel2[2] = { ARM2ID, ARM2RXID };
-
-	// Request angles for channel 1
-	armSearch(channel1);
 
 	// Text color
 	LCD.setColor(0xFFFF);
 
 	// Text background color
 	LCD.setBackColor(0xB5B5B5);
+	if (channel == 1)
+	{
+		// Request angles for channel 1
+		armSearch(can1, channel1);
+	}
 
 	// Draw angles if values were received and this is the correct channel
-	if (isResponseCh1 && !channel)
+	if (isResponseCh1 && channel == 1)
 	{
 		LCD.printNumI(a1c1, 205, 48);
 		LCD.printNumI(a2c1, 205, 93);
@@ -138,11 +140,14 @@ void AxisPos::drawAxisPos(UTFT LCD, bool channel)
 		isResponseCh1 = false;
 	}
 
-	// Request angles for channel 2
-	armSearch(channel2);
+	if (channel == 2)
+	{
+		// Request angles for channel 2
+		armSearch(can1, channel2);
+	}
 
 	// Draw angles if values were received and this is the correct channel
-	if (isResponseCh2 && channel)
+	if (isResponseCh2 && channel == 2)
 	{
 		LCD.printNumI(a1c2, 315, 48);
 		LCD.printNumI(a2c2, 315, 93);
@@ -159,8 +164,8 @@ void AxisPos::updateAxisPos()
 {
 	uint16_t channel1[2] = { ARM1ID, ARM1RXID };
 	uint16_t channel2[2] = { ARM2ID, ARM2RXID };
-	armSearch(channel1);
-	armSearch(channel2);
+	//armSearch(channel1);
+	//armSearch(channel2);
 }
 
 // Getters

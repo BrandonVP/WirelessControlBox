@@ -38,9 +38,6 @@ AxisPos axisPos;
 // Linked list of nodes for a program
 LinkedList<Program*> runList = LinkedList<Program*>();
 
-// Keeps track of current page
-uint8_t controlPage = 1;
-
 // Current selected program
 uint8_t selectedProgram = 0;
 
@@ -59,8 +56,12 @@ int8_t gripStatus = 2;
 // Program names
 String aList[10] = { "Program1", "Program2", "Program3", "Program4", "Program5", "Program6", "Program7", "Program8", "Program9", "Program10" };
 
-// BITMAP global for bmpDraw()
-int dispx, dispy;
+
+// Page control variables
+uint8_t page = 1;
+uint8_t oldPage = 1;
+bool hasDrawn = false;
+unsigned int timer = 0;
 
 /*=========================================================
     Framework Functions
@@ -82,6 +83,8 @@ void bmpDraw(char* filename, int x, int y) {
     uint32_t pos = 0, startTime = millis();
     uint8_t  lcdidx = 0;
     boolean  first = true;
+    int dispx = myGLCD.getDisplayXSize();
+    int dispy = myGLCD.getDisplayYSize();
 
     if ((x >= dispx) || (y >= dispy)) return;
 
@@ -564,34 +567,34 @@ void manualControlButtons()
                 data[6] = 0;
             }
         }
-        if ((y >= 260) && (y <= 315))
+        if ((y >= 240) && (y <= 295))
         {
             if ((x >= 146) && (x <= 200))
             {
                 // Select arm 1
-                drawSquareBtn(146, 260, 200, 315, "1", menuBtnText, menuBtnBorder, menuBtnColor, CENTER);
-                drawSquareBtn(200, 260, 254, 315, "2", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+                drawSquareBtn(146, 240, 200, 295, "1", menuBtnText, menuBtnBorder, menuBtnColor, CENTER);
+                drawSquareBtn(200, 240, 254, 295, "2", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
                 txIdManual = ARM1_M;
             }
             if ((x >= 200) && (x <= 254))
             {
                 // Select arm 2
-                drawSquareBtn(146, 260, 200, 315, "1", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
-                drawSquareBtn(200, 260, 254, 315, "2", menuBtnText, menuBtnBorder, menuBtnColor, CENTER);
+                drawSquareBtn(146, 240, 200, 295, "1", menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+                drawSquareBtn(200, 240, 254, 295, "2", menuBtnText, menuBtnBorder, menuBtnColor, CENTER);
                 txIdManual = ARM2_M;
             }
             if ((x >= 270) && (x <= 360))
             {
                 // Grip open
                 data[7] = 1 * multiply;
-                waitForItRect(270, 260, 360, 315, txIdManual, data);
+                waitForItRect(270, 240, 360, 295, txIdManual, data);
                 data[7] = 0;
             }
             if ((x >= 360) && (x <= 450))
             {
                 // Grip close
                 data[7] = (1 * multiply) + reverse;
-                waitForItRect(360, 260, 450, 315, txIdManual, data);
+                waitForItRect(360, 240, 450, 295, txIdManual, data);
                 data[7] = 0;
             }
         }
@@ -606,9 +609,6 @@ void drawView()
 {
     // Clear LCD to be written 
     drawSquareBtn(141, 1, 799, 479, "", themeBackground, themeBackground, themeBackground, CENTER);
-
-    // Print arm logo
-    
 
     // Draw row lables
     for (int start = 35, stop = 75, row = 1; start <= 260; start = start + 45, stop = stop + 45, row++)
@@ -638,8 +638,15 @@ void drawView()
     drawRoundBtn(200, yStart + 225, 305, yStop + 225, DEG, menuBackground, menuBackground, menuBtnColor, RIGHT);
 }
 
-// No buttons, consider adding a refresh mechanism 
-
+void updateViewPage()
+{
+    if (page == 1 && (millis() - timer > 200))
+    {
+        axisPos.drawAxisPos(myGLCD, can1, CHANNEL1);
+        axisPos.drawAxisPos(myGLCD, can1, CHANNEL2);
+        timer = millis();
+    }
+}
 
 /*==========================================================
                     Program Arm
@@ -958,7 +965,8 @@ void programButtons()
                 runList.clear();
                 loadProgram();
                 programOpen = true;
-                pageControl(6, 0);
+                page = 6;
+                hasDrawn = false;
             }
             if ((x >= 255) && (x <= 355))
             {
@@ -1327,14 +1335,16 @@ void programEditButtons()
                 programDelete();
                 saveProgram();
                 programOpen = false;
-                pageControl(2, false);
+                page = 2;
+                hasDrawn = false;
             }
             if ((x >= 740) && (x <= 799))
             {
                 // Cancel
                 waitForItRect(740, 430, 799, 470);
                 programOpen = false;
-                pageControl(2, false);
+                page = 2;
+                hasDrawn = false;
             }
         }
     }
@@ -1486,7 +1496,6 @@ void setup() {
 
     re = GT9271_Send_Cfg((uint8_t*)GTP_CFG_DATA, sizeof(GTP_CFG_DATA));
 
-
     uint8_t bb[2];
     readGT9271TouchAddr(0x8047, bb, 2);
     while (bb[1] != 32)
@@ -1503,13 +1512,10 @@ void setup() {
         pinMode(GT9271_INT, INPUT);
         delay(100);
 
-
         uint8_t re = GT9271_Send_Cfg((uint8_t*)GTP_CFG_DATA, sizeof(GTP_CFG_DATA));
-
     }
 
     //Serial.println("Capacitive touch screen initialized success");
-
 
     // Setup the LCD
     myGLCD.InitLCD();
@@ -1519,105 +1525,97 @@ void setup() {
   // -------------------------------------------------------------
     myGLCD.setFont(BigFont);
     myGLCD.clrScr();
-    dispx = myGLCD.getDisplayXSize();
-    dispy = myGLCD.getDisplayYSize();
-    // Draw the Hypertech logo
-    //bmpDraw("robotarm.bmp", 0, 0);
-    //bmpDraw("System/HYPER.bmp", 0, 0);
+
+
+    myGLCD.setColor(VGA_BLACK);
+    myGLCD.setBackColor(VGA_WHITE);
+    drawSquareBtn(1, 1, 800, 600, "", themeBackground, themeBackground, menuBtnColor, CENTER);
+    myGLCD.print("Loading...", 290, 290);
+    bmpDraw("robotarm.bmp", 0, 0);
+    delay(2000);
+    drawMenu();
     
+    print_icon(48, 420, robotarm);
+    timer = millis();
 }
 
 // Page control framework
-void pageControl(int page, bool value = false)
+void pageControl()
 {
-    // Static bool ensures the page is drawn only once while the loop is running
-    static bool hasDrawn;
-    // Seperated because compiler produces error with 1 line
-    hasDrawn = value;
+    // Check if button on menu is pushed
+    menuButtons();
 
-    while (true)
+    // Switch which page to load
+    switch (page)
     {
-        // Check if button on menu is pushed
-        menuButtons();
-
-        // Switch which page to load
-        switch (page)
+    case 1:
+        // Draw page
+        if (!hasDrawn)
         {
-        case 1:
-            // Draw page
-            if (!hasDrawn)
-            {
-                drawView();
-                axisPos.drawAxisPos(myGLCD, CHANNEL1);
-                axisPos.drawAxisPos(myGLCD, CHANNEL2);
-                hasDrawn = true;
-                controlPage = page;
-            }
-            // Call buttons if any
-            break;
-        case 2:
-            if (programOpen)
-            {
-                pageControl(6);
-            }
-            // Draw page
-            if (!hasDrawn)
-            {
-                drawProgram();
-                hasDrawn = true;
-                controlPage = page;
-            }
-            // Call buttons if any
-            programButtons();
-            break;
-        case 3:
-            // Draw page
-            if (!hasDrawn)
-            {
-                drawManualControl();
-                hasDrawn = true;
-                controlPage = page;
-            }
-            // Call buttons if any
-            manualControlButtons();
-            break;
-        case 4:
-            // Draw page
-            if (!hasDrawn)
-            {
-                drawConfig();
-                hasDrawn = true;
-                controlPage = page;
-            }
-            // Call buttons if any
-            configButtons();
-            break;
-        case 5:
-            // Draw page
-            if (!hasDrawn)
-            {
-                hasDrawn = true;
-                programLoaded = true;
-                programRun();
-                pageControl(controlPage, true);
-            }
-            page = 2;
-            // Call buttons if any
-            break;
-        case 6:
-            // Program edit page
-            if (!hasDrawn)
-            {
-                hasDrawn = true;
-                programLoaded = true;
-                drawProgramEdit();
-                drawProgramEditScroll();
-                controlPage = page;
-            }
-            // Call buttons if any
-            programEditButtons();
-            break;
+            drawView();
+            axisPos.drawAxisPos(myGLCD, can1, CHANNEL1);
+            axisPos.drawAxisPos(myGLCD, can1, CHANNEL2);
+            hasDrawn = true;
         }
+        // Call buttons if any
+        break;
+    case 2:
+        if (programOpen)
+        {
+            page = 6;
+        }
+        // Draw page
+        if (!hasDrawn)
+        {
+            drawProgram();
+            hasDrawn = true;
+        }
+        // Call buttons if any
+        programButtons();
+        break;
+    case 3:
+        // Draw page
+        if (!hasDrawn)
+        {
+            drawManualControl();
+            hasDrawn = true;
+        }
+        // Call buttons if any
+        manualControlButtons();
+        break;
+    case 4:
+        // Draw page
+        if (!hasDrawn)
+        {
+            drawConfig();
+            hasDrawn = true;
+        }
+        // Call buttons if any
+        configButtons();
+        break;
+    case 5:
+        // Draw page
+        if (!hasDrawn)
+        {
+            hasDrawn = true;
+            programLoaded = true;
+            programRun();
+            oldPage = page;
+        }
+        // Call buttons if any
+        break;
+    case 6:
+        // Program edit page
+        if (!hasDrawn)
+        {
+            hasDrawn = true;
+            programLoaded = true;
+            drawProgramEdit();
+            drawProgramEditScroll();
+        }
+        // Call buttons if any
+        programEditButtons();
+        break;
     }
 }
 
@@ -1690,7 +1688,7 @@ uint8_t errorMSGBtn(uint8_t page)
             if ((y >= 140) && (y <= 170))
             {
                 waitForItRect(400, 140, 450, 170);
-                pageControl(page);
+                page = oldPage;
             }
         }
     }
@@ -1699,58 +1697,59 @@ uint8_t errorMSGBtn(uint8_t page)
 // Buttons for the main menu
 void menuButtons()
 {
-    while (true)
+    uint8_t  ss[1];
+    readGT9271TouchAddr(0x814e, ss, 1);
+    uint8_t status = ss[0];
+    if ((status & 0x80) != 0)  // touch status   Software touch interrupt  
     {
-        uint8_t  ss[1];
-        readGT9271TouchAddr(0x814e, ss, 1);
-        uint8_t status = ss[0];
-        if ((status & 0x80) != 0)  // touch status   Software touch interrupt  
+        readGT9271TouchLocation(touchLocations, 10);
+        x = 800 - touchLocations[0].x;
+        y = 480 - touchLocations[0].y;
+
+        // Menu
+        if ((x >= 10) && (x <= 130))  // Button: 1
         {
-            readGT9271TouchLocation(touchLocations, 10);
-            x = 800 - touchLocations[0].x;
-            y = 480 - touchLocations[0].y;
-
-            // Menu
-            if ((x >= 10) && (x <= 130))  // Button: 1
+            if ((y >= 10) && (y <= 65))  // Upper row
             {
-                if ((y >= 10) && (y <= 65))  // Upper row
-                {
-                    waitForIt(10, 10, 130, 65);
-                    pageControl(1);
-                }
-                if ((y >= 70) && (y <= 125))  // Upper row
-                {
+                waitForIt(10, 10, 130, 65);
+                page = 1;
+                hasDrawn = false;
+            }
+            if ((y >= 70) && (y <= 125))  // Upper row
+            {
 
-                    // X_Start, Y_Start, X_Stop, Y_Stop
-                    waitForIt(10, 70, 130, 125);
-                    pageControl(2);
-
-                }
-                if ((y >= 130) && (y <= 185))  // Upper row
-                {
-                    // X_Start, Y_Start, X_Stop, Y_Stop
-                    waitForIt(10, 130, 130, 185);
-                    pageControl(3);
-                }
-                // Settings touch button
-                if ((y >= 190) && (y <= 245))
-                {
-
-                    // X_Start, Y_Start, X_Stop, Y_Stop
-                    waitForIt(10, 190, 130, 245);
-                    pageControl(4);
-                }
-                if ((y >= 250) && (y <= 305))
-                {
-
-                    // X_Start, Y_Start, X_Stop, Y_Stop
-                    waitForIt(10, 250, 130, 305);
-                    pageControl(5);
-                }
+                // X_Start, Y_Start, X_Stop, Y_Stop
+                waitForIt(10, 70, 130, 125);
+                page = 2;
+                hasDrawn = false;
 
             }
+            if ((y >= 130) && (y <= 185))  // Upper row
+            {
+                // X_Start, Y_Start, X_Stop, Y_Stop
+                waitForIt(10, 130, 130, 185);
+                page = 3;
+                hasDrawn = false;
+            }
+            // Settings touch button
+            if ((y >= 190) && (y <= 245))
+            {
+
+                // X_Start, Y_Start, X_Stop, Y_Stop
+                waitForIt(10, 190, 130, 245);
+                page = 4;
+                hasDrawn = false;
+            }
+            if ((y >= 250) && (y <= 305))
+            {
+
+                // X_Start, Y_Start, X_Stop, Y_Stop
+                waitForIt(10, 250, 130, 305);
+                page = 5;
+                hasDrawn = false;
+            }
+
         }
-        return;
     }
 }
 
@@ -1778,14 +1777,12 @@ void testfn()
 }
 */
 
+
+
 // Calls pageControl with a value of 1 to set view page as the home page
 void loop()
 {
-    myGLCD.setColor(VGA_BLACK);
-    myGLCD.setBackColor(VGA_WHITE);
-    myGLCD.print("Loading...", 290, 290);
-    delay(4000);
-    drawMenu();
-    print_icon(48, 420, robotarm);
-    pageControl(controlPage);
+    // Background processes run here
+    updateViewPage();
+    pageControl();
 }

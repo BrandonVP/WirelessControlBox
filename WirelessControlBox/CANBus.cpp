@@ -22,27 +22,24 @@ void CANBus::startCAN()
 // CAN Bus send message
 void CANBus::sendFrame(uint16_t id, byte* frame)
 {
-    // Create message object
-    CAN_FRAME1 myFrame;
-
     // Disable extended frames
     //myFrame.extended = false;
 
     // Outgoing message ID
-    myFrame.id = id;
+    outgoing.id = id;
 
     // Message length
     //myFrame.length = 8;
 
     // Assign object to message array
-    myFrame.byte[0] = frame[0];
-    myFrame.byte[1] = frame[1];
-    myFrame.byte[2] = frame[2];
-    myFrame.byte[3] = frame[3];
-    myFrame.byte[4] = frame[4];
-    myFrame.byte[5] = frame[5];
-    myFrame.byte[6] = frame[6];
-    myFrame.byte[7] = frame[7];
+    outgoing.byte[0] = frame[0];
+    outgoing.byte[1] = frame[1];
+    outgoing.byte[2] = frame[2];
+    outgoing.byte[3] = frame[3];
+    outgoing.byte[4] = frame[4];
+    outgoing.byte[5] = frame[5];
+    outgoing.byte[6] = frame[6];
+    outgoing.byte[7] = frame[7];
 
     // Debugging
     /*
@@ -65,7 +62,7 @@ void CANBus::sendFrame(uint16_t id, byte* frame)
     */
 
     // Send object out
-    Can0.sendFrame(myFrame);
+    Can0.sendFrame(outgoing);
 
     return;
 }
@@ -73,9 +70,6 @@ void CANBus::sendFrame(uint16_t id, byte* frame)
 // Get and return message frame from specified rxID
 uint8_t* CANBus::getFrame(uint16_t IDFilter)
 {
-    // Create object to save message
-    CAN_FRAME1 incoming;
-
     // If buffer inbox has a message
     if (Can0.available() > 0) 
     {
@@ -101,8 +95,6 @@ void CANBus::resetMSGFrame()
 // Check if value exists in incoming message, used for confirmation
 bool CANBus::msgCheck(uint16_t ID, uint8_t value, int8_t pos)
 {
-    // Create object to save message
-    CAN_FRAME1 incoming;
     //Serial.println("msgCheck");
     // If buffer inbox has a message
     if (Can0.available() > 0)
@@ -119,9 +111,6 @@ bool CANBus::msgCheck(uint16_t ID, uint8_t value, int8_t pos)
 // Get frame ID, used for confirmation
 uint16_t CANBus::getFrameID()
 {
-    // Create object to save message
-    CAN_FRAME1 incoming;
-
     // If buffer inbox has a message
     if (Can0.available() > 0)
     {

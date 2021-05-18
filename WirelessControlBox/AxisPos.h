@@ -37,19 +37,15 @@ class AxisPos
 	 uint16_t a5c2 = 0;
 	 uint16_t a6c2 = 0;
 
-	 // Objects to request CAN messages and write to LCD
-	 CANBus can1;
-	 UTFT LCD;
-
 	 // Used to enable writing angle values to LCD if the controller responded with the requested angles
 	 bool isResponseCh1 = false;
 	 bool isResponseCh2 = false;
 
  public:
 	AxisPos();
-	void drawAxisPos(UTFT, bool);
+	void drawAxisPos(UTFT, CANBus, uint8_t);
 	void updateAxisPos();
-	void armSearch(uint16_t*);
+	void armSearch(CANBus, uint16_t*);
 	int getA1C1();
 	int getA2C1();
 	int getA3C1();
