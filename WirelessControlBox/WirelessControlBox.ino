@@ -50,6 +50,8 @@ bool programLoaded = false;
 // Used to determine which PROG page should be loaded when button is pressed
 bool programOpen = false;
 
+bool loopProgram = true;
+
 // 0 = open, 1 = close, 2 = no change
 int8_t gripStatus = 2;
 
@@ -164,7 +166,7 @@ void bmpDraw(char* filename, int x, int y) {
                           // Push LCD buffer to the display first
                             if (lcdidx > 0) {
                                 myGLCD.setColor(lcdbuffer[lcdidx]);
-                                myGLCD.drawPixel(col + 437, row + 1);
+                                myGLCD.drawPixel(col + 250, row + 1);
                                 lcdidx = 0;
                                 first = false;
                             }
@@ -177,7 +179,7 @@ void bmpDraw(char* filename, int x, int y) {
                         g = sdbuffer[buffidx++];
                         r = sdbuffer[buffidx++];
                         myGLCD.setColor(r, g, b);
-                        myGLCD.drawPixel(col + 437, row + 1);
+                        myGLCD.drawPixel(col + 250, row + 1);
 
                     } // end pixel
                 } // end scanline
@@ -185,7 +187,7 @@ void bmpDraw(char* filename, int x, int y) {
                 // Write any remaining data to LCD
                 if (lcdidx > 0) {
                     myGLCD.setColor(lcdbuffer[lcdidx]);
-                    myGLCD.drawPixel(col + 437, row + 1);
+                    myGLCD.drawPixel(col + 250, row + 1);
                 }
             } // end goodBmp
         }
@@ -640,10 +642,13 @@ void drawView()
 
 void updateViewPage()
 {
-    if (page == 1 && (millis() - timer > 200))
+    if (millis() - timer > REFRESH_RATE)
     {
-        axisPos.drawAxisPos(myGLCD, can1, CHANNEL1);
-        axisPos.drawAxisPos(myGLCD, can1, CHANNEL2);
+        axisPos.sendRequest(can1);
+        if (page == 1)
+        {
+            axisPos.drawAxisPos(myGLCD);
+        }
         timer = millis();
     }
 }
@@ -1084,9 +1089,6 @@ void addNode(int insert = -1)
 {
     // Array of arm axis positions
     uint16_t posArray[8] = { 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000 };
-
-    // Request and update 
-    axisPos.updateAxisPos();
 
     // Update array value with data collected from the axis position update
     if (txIdManual == ARM1_M)
@@ -1530,7 +1532,7 @@ void setup() {
     myGLCD.setColor(VGA_BLACK);
     myGLCD.setBackColor(VGA_WHITE);
     drawSquareBtn(1, 1, 800, 600, "", themeBackground, themeBackground, menuBtnColor, CENTER);
-    myGLCD.print("Loading...", 290, 290);
+    myGLCD.print("Loading...", 320, 290);
     bmpDraw("robotarm.bmp", 0, 0);
     delay(2000);
     drawMenu();
@@ -1553,8 +1555,8 @@ void pageControl()
         if (!hasDrawn)
         {
             drawView();
-            axisPos.drawAxisPos(myGLCD, can1, CHANNEL1);
-            axisPos.drawAxisPos(myGLCD, can1, CHANNEL2);
+            axisPos.drawAxisPos(myGLCD);
+            axisPos.drawAxisPos(myGLCD);
             hasDrawn = true;
         }
         // Call buttons if any
@@ -1563,6 +1565,7 @@ void pageControl()
         if (programOpen)
         {
             page = 6;
+            break;
         }
         // Draw page
         if (!hasDrawn)
@@ -1601,6 +1604,10 @@ void pageControl()
             programLoaded = true;
             programRun();
             oldPage = page;
+        }
+        if (loopProgram)
+        {
+            programRun();
         }
         // Call buttons if any
         break;
@@ -1706,49 +1713,38 @@ void menuButtons()
         x = 800 - touchLocations[0].x;
         y = 480 - touchLocations[0].y;
 
-        // Menu
-        if ((x >= 10) && (x <= 130))  // Button: 1
+        if ((x >= 10) && (x <= 130)) 
         {
-            if ((y >= 10) && (y <= 65))  // Upper row
+            if ((y >= 10) && (y <= 65))  
             {
                 waitForIt(10, 10, 130, 65);
                 page = 1;
                 hasDrawn = false;
             }
-            if ((y >= 70) && (y <= 125))  // Upper row
+            if ((y >= 70) && (y <= 125))  
             {
-
-                // X_Start, Y_Start, X_Stop, Y_Stop
                 waitForIt(10, 70, 130, 125);
                 page = 2;
                 hasDrawn = false;
-
             }
-            if ((y >= 130) && (y <= 185))  // Upper row
+            if ((y >= 130) && (y <= 185)) 
             {
-                // X_Start, Y_Start, X_Stop, Y_Stop
                 waitForIt(10, 130, 130, 185);
                 page = 3;
                 hasDrawn = false;
             }
-            // Settings touch button
             if ((y >= 190) && (y <= 245))
             {
-
-                // X_Start, Y_Start, X_Stop, Y_Stop
                 waitForIt(10, 190, 130, 245);
                 page = 4;
                 hasDrawn = false;
             }
             if ((y >= 250) && (y <= 305))
             {
-
-                // X_Start, Y_Start, X_Stop, Y_Stop
                 waitForIt(10, 250, 130, 305);
                 page = 5;
                 hasDrawn = false;
             }
-
         }
     }
 }
@@ -1777,12 +1773,52 @@ void testfn()
 }
 */
 
+void TrafficManager()
+{
+    uint8_t sw_fn = can1.processFrame();
+    switch(sw_fn)
+    {
+        case 0: // No traffic
 
+        break;
+        
+        case 1: // C1 lower
+            axisPos.updateAxisPos(can1, ARM1_RX);
+        break;
 
-// Calls pageControl with a value of 1 to set view page as the home page
+        
+        case 2: //  C1 Upper
+            axisPos.updateAxisPos(can1, ARM1_RX);
+        break;
+
+        
+        case 3: // C2 Lower
+            axisPos.updateAxisPos(can1, ARM2_RX);
+        break;
+
+        
+        case 4: // C2 Upper
+            axisPos.updateAxisPos(can1, ARM2_RX);
+        break;
+
+        
+        case 5: // C1 Confirmation
+
+        break;
+
+        
+        case 6: // C2 Confirmation
+
+        break;
+    }
+}
+
 void loop()
 {
-    // Background processes run here
-    updateViewPage();
+    // GUI
     pageControl();
+
+    // Background Processes
+    TrafficManager();
+    updateViewPage();
 }

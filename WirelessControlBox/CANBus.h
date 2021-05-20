@@ -33,9 +33,11 @@ class CANBus
 	void startCAN();
 	void sendFrame(uint16_t, byte*);
 	bool msgCheck(uint16_t, uint8_t, int8_t);
-	uint8_t* getFrame(uint16_t);
+	uint8_t* getFrame();
 	uint16_t getFrameID();
 	void resetMSGFrame();
 	bool hasMSGr();
+	bool hasMessage();
+	uint8_t processFrame();
 };
 #endif

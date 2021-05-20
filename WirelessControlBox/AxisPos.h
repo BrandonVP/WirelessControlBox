@@ -43,9 +43,10 @@ class AxisPos
 
  public:
 	AxisPos();
-	void drawAxisPos(UTFT, CANBus, uint8_t);
-	void updateAxisPos();
+	void drawAxisPos(UTFT);
+	void updateAxisPos(CANBus, uint8_t);
 	void armSearch(CANBus, uint16_t*);
+	void sendRequest(CANBus);
 	int getA1C1();
 	int getA2C1();
 	int getA3C1();

@@ -10,34 +10,38 @@ void SerialManager::startSerial()
 }
 
 
-uint8_t SerialManager::available()
+bool SerialManager::byteInbox()
 {
-	//Serial.println(Serial3.available());
-	if (Serial3.available() > 9)
+	if (Serial3.available() > 0)
 	{
-		return 0x01;
+		//Serial.print("Bytes in Que: ");
+		//Serial.println(Serial3.available());
+	}
+	if (Serial3.available() >= 10)
+	{
+		return true;
 	}
 	else
 	{
-		return 0x00;
+		return false;
 	}
 }
 
 void SerialManager::readFrame(CAN_FRAME1 &rxCAN)
 {
-	if ((Serial3.available() >= SIZE_OF_FRAME) && (Serial3.read() == FLOW_CONTROL_VALUE))
+	//if ((Serial3.available() >= 9) && (Serial3.read() == FLOW_CONTROL_VALUE))
+	if ((Serial3.available() >= 10))
 	{
-		//Serial.print("ID: ");
+		while (Serial3.read() != FLOW_CONTROL_VALUE) 
+		{
+			// Read until flow control value is hit
+			// This auto aligns the messages
+		}
 		rxCAN.id = Serial3.read();
-		//Serial.print(rxCAN.id);
-		//Serial.print(" MSG: ");
 		for (uint8_t i = 0; i < ARRAY_SIZE; i++)
 		{
 			rxCAN.byte[i] = Serial3.read();
-			//Serial.print(rxCAN.byte[i]);
-			//Serial.print(" ");
 		}
-		//Serial.println("");
 	}
 }
 

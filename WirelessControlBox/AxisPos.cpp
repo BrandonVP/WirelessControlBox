@@ -11,6 +11,67 @@ AxisPos::AxisPos()
 	// Currently unused
 }
 
+
+void AxisPos::sendRequest(CANBus can1)
+{
+	uint16_t channel1[2] = { ARM1ID, ARM1RXID };
+	uint16_t channel2[2] = { ARM2ID, ARM2RXID };
+	uint8_t requestAngles[8] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
+	requestAngles[1] = LOWER;
+	can1.sendFrame(ARM1ID, requestAngles);
+	can1.sendFrame(ARM2ID, requestAngles);
+	requestAngles[1] = UPPER;
+	can1.sendFrame(ARM1ID, requestAngles);
+	can1.sendFrame(ARM2ID, requestAngles);
+}
+
+void AxisPos::updateAxisPos(CANBus can1, uint8_t channel)
+{
+	// Request CAN frame addressed to paremeter ID
+	uint8_t* temp = can1.getFrame();
+
+	// If correct message is returned 
+	if (temp[1] == LOWER)
+	{
+
+		// Determine which channel to write values too
+		if (channel == ARM1RXID)
+		{
+			// Two bytes per axis to reach max of 360 degrees
+			a1c1 = (temp[2] * 255) + temp[3];
+			a2c1 = (temp[4] * 255) + temp[5];
+			a3c1 = (temp[6] * 255) + temp[7];
+			//Serial.println("Arm 1 Lower");
+		}
+		else if (channel == ARM2RXID)
+		{
+			a1c2 = (temp[2] * 255) + temp[3];
+			a2c2 = (temp[4] * 255) + temp[5];
+			a3c2 = (temp[6] * 255) + temp[7];
+			//Serial.println("Arm 2 Lower");
+		}
+	}
+	if (temp[1] == UPPER)
+	{
+		if (channel == ARM1RXID)
+		{
+			a4c1 = (temp[2] * 255) + temp[3];
+			a5c1 = (temp[4] * 255) + temp[5];
+			a6c1 = (temp[6] * 255) + temp[7];
+			//Serial.println("Arm 1 Upper");
+		}
+		else if (channel == ARM2RXID)
+		{
+			a4c2 = (temp[2] * 255) + temp[3];
+			a5c2 = (temp[4] * 255) + temp[5];
+			a6c2 = (temp[6] * 255) + temp[7];
+			//Serial.println("Arm 2 Upper");
+		}
+	}
+}
+
+/*
 // Request current axis angle from either desired channel
 // Channel contains both TX and RX CAN address
 void AxisPos::armSearch(CANBus can1, uint16_t * channel)
@@ -109,66 +170,45 @@ void AxisPos::armSearch(CANBus can1, uint16_t * channel)
 		}
 	}
 }
+*/
 
 // Update and draw the Axis positions on the view page
-void AxisPos::drawAxisPos(UTFT LCD, CANBus can1, uint8_t channel)
+void AxisPos::drawAxisPos(UTFT LCD)
 {
-	// ID arrays for the two channels
-	uint16_t channel1[2] = { ARM1ID, ARM1RXID };
-	uint16_t channel2[2] = { ARM2ID, ARM2RXID };
-
 	// Text color
 	LCD.setColor(0xFFFF);
 
 	// Text background color
 	LCD.setBackColor(0xB5B5B5);
-	if (channel == 1)
-	{
-		// Request angles for channel 1
-		armSearch(can1, channel1);
-	}
 
-	// Draw angles if values were received and this is the correct channel
-	if (isResponseCh1 && channel == 1)
-	{
-		LCD.printNumI(a1c1, 205, 48);
-		LCD.printNumI(a2c1, 205, 93);
-		LCD.printNumI(a3c1, 205, 138);
-		LCD.printNumI(a4c1, 205, 183);
-		LCD.printNumI(a5c1, 205, 228);
-		LCD.printNumI(a6c1, 205, 273);
-		isResponseCh1 = false;
-	}
-
-	if (channel == 2)
-	{
-		// Request angles for channel 2
-		armSearch(can1, channel2);
-	}
-
-	// Draw angles if values were received and this is the correct channel
-	if (isResponseCh2 && channel == 2)
-	{
-		LCD.printNumI(a1c2, 315, 48);
-		LCD.printNumI(a2c2, 315, 93);
-		LCD.printNumI(a3c2, 315, 138);
-		LCD.printNumI(a4c2, 315, 183);
-		LCD.printNumI(a5c2, 315, 228);
-		LCD.printNumI(a6c2, 315, 273);
-		isResponseCh2 = false;
-	}
+	String test = String(printf("%02d", a3c1));
+	// Draw angles 
+	LCD.printNumI(a1c1, 205, 48);
+	LCD.printNumI(a2c1, 205, 93);
+	LCD.printNumI(a3c1, 205, 138);
+	LCD.printNumI(a4c1, 205, 183);
+	LCD.printNumI(a5c1, 205, 228);
+	LCD.printNumI(a6c1, 205, 273);
+	LCD.printNumI(a1c2, 315, 48);
+	LCD.printNumI(a2c2, 315, 93);
+	LCD.printNumI(a3c2, 315, 138);
+	LCD.printNumI(a4c2, 315, 183);
+	LCD.printNumI(a5c2, 315, 228);
+	LCD.printNumI(a6c2, 315, 273);
 }
 
+/*
 // Updates axis position without drawing
-void AxisPos::updateAxisPos()
+void AxisPos::updateAxisPos(CANBus can1)
 {
 	uint16_t channel1[2] = { ARM1ID, ARM1RXID };
 	uint16_t channel2[2] = { ARM2ID, ARM2RXID };
-	//armSearch(channel1);
-	//armSearch(channel2);
+	armSearch(can1, channel1);
+	armSearch(can1, channel2);
 }
+*/
 
-// Getters
+// Get angle for programming
 int AxisPos::getA1C1()
 {
 	return a1c1;

@@ -22,14 +22,8 @@ void CANBus::startCAN()
 // CAN Bus send message
 void CANBus::sendFrame(uint16_t id, byte* frame)
 {
-    // Disable extended frames
-    //myFrame.extended = false;
-
     // Outgoing message ID
     outgoing.id = id;
-
-    // Message length
-    //myFrame.length = 8;
 
     // Assign object to message array
     outgoing.byte[0] = frame[0];
@@ -68,19 +62,39 @@ void CANBus::sendFrame(uint16_t id, byte* frame)
 }
 
 // Get and return message frame from specified rxID
-uint8_t* CANBus::getFrame(uint16_t IDFilter)
+uint8_t* CANBus::getFrame()
+{
+    return MSGFrame;
+}
+
+
+// Get and return message frame from specified rxID
+uint8_t CANBus::processFrame()
 {
     // If buffer inbox has a message
-    if (Can0.available() > 0) 
+    if (Can0.byteInbox() > 0)
     {
         Can0.readFrame(incoming);
+        //Serial.print("ID: ");
+        //Serial.println(incoming.id, HEX);
         for (int i = 0; i < 8; i++)
         {
             MSGFrame[i] = incoming.byte[i];
         }
-        hasMSG = false;
+        if (incoming.id == 0xC1)
+        {
+            //Serial.print("Value: ");
+            //Serial.println((incoming.byte[1]));
+            return incoming.byte[1];
+        }
+        if (incoming.id == 0xC2)
+        {
+            //Serial.print("Value: ");
+            //Serial.println((incoming.byte[1] + 2));
+            return incoming.byte[1] + 2;
+        }
     }
-    return MSGFrame;
+    return 0;
 }
 
 // Resets objects uint8_t array back to zero
@@ -97,7 +111,7 @@ bool CANBus::msgCheck(uint16_t ID, uint8_t value, int8_t pos)
 {
     //Serial.println("msgCheck");
     // If buffer inbox has a message
-    if (Can0.available() > 0)
+    if (Can0.byteInbox() > 0)
     {
         Can0.readFrame(incoming);
         if (incoming.id == ID && incoming.byte[pos] == value)
@@ -112,12 +126,13 @@ bool CANBus::msgCheck(uint16_t ID, uint8_t value, int8_t pos)
 uint16_t CANBus::getFrameID()
 {
     // If buffer inbox has a message
-    if (Can0.available() > 0)
+    if (Can0.byteInbox() > 0)
     {
         Can0.readFrame(incoming);
     }
     return incoming.id;
 }
+
 
 // return current value and reset hasMSG to true
 bool CANBus::hasMSGr() {
@@ -126,3 +141,8 @@ bool CANBus::hasMSGr() {
     return temp;
 }
 
+
+bool CANBus::hasMessage()
+{
+    return Can0.byteInbox();
+}

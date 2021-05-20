@@ -11,7 +11,7 @@
 
 #define FLOW_CONTROL_VALUE 0xFF
 #define SIZE_OF_FRAME 10
-#define ARRAY_SIZE 9
+#define ARRAY_SIZE 8
 
 typedef struct CAN_FRAME1 {
 	uint16_t id;
@@ -24,7 +24,7 @@ private:
 
 
 public:
-	uint8_t available();
+	bool byteInbox();
 	void startSerial();
 	void readFrame(CAN_FRAME1&);
 	void sendFrame(CAN_FRAME1);

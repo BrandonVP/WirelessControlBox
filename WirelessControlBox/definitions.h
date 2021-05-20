@@ -31,4 +31,4 @@ constexpr auto ARM2_CONTROL = 0x0B0;
 #define BUFFPIXEL 20
 
 #define DEG "deg"
-
+#define REFRESH_RATE 200
