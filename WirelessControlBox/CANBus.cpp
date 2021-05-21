@@ -1,31 +1,21 @@
 // CANBus manages the CAN bus hardware
 
+// 5/20/2021
+// CANBus hardware replaced with serial WiFi connection
+// This class can be merged with SerialManager in the future
+
 #include "CANBus.h"
-//#include <due_can.h>
-//#include "variant.h"
 
 // Default Constructor
 CANBus::CANBus()
 {
     // Currently unused
-    
-}
-
-void CANBus::startCAN()
-{
-    // Initialize CAN1 and set the proper baud rates here
-    //Can0.begin(CAN_BPS_500K);
-    //Can0.watchFor();
-    return;
 }
 
 // CAN Bus send message
 void CANBus::sendFrame(uint16_t id, byte* frame)
 {
-    // Outgoing message ID
     outgoing.id = id;
-
-    // Assign object to message array
     outgoing.byte[0] = frame[0];
     outgoing.byte[1] = frame[1];
     outgoing.byte[2] = frame[2];
@@ -34,30 +24,7 @@ void CANBus::sendFrame(uint16_t id, byte* frame)
     outgoing.byte[5] = frame[5];
     outgoing.byte[6] = frame[6];
     outgoing.byte[7] = frame[7];
-
-    // Debugging
-    /*
-    Serial.print("MSG: ");
-    Serial.print(frame[0]);
-    Serial.print(" ");
-    Serial.print(frame[1]);
-    Serial.print(" ");
-    Serial.print(frame[2]);
-    Serial.print(" ");
-    Serial.print(frame[3]);
-    Serial.print(" ");
-    Serial.print(frame[4]);
-    Serial.print(" ");
-    Serial.print(frame[5]);
-    Serial.print(" ");
-    Serial.print(frame[6]);
-    Serial.print(" ");
-    Serial.println(frame[7]);
-    */
-
-    // Send object out
     Can0.sendFrame(outgoing);
-
     return;
 }
 
@@ -67,7 +34,6 @@ uint8_t* CANBus::getFrame()
     return MSGFrame;
 }
 
-
 // Get and return message frame from specified rxID
 uint8_t CANBus::processFrame()
 {
@@ -75,23 +41,23 @@ uint8_t CANBus::processFrame()
     if (Can0.byteInbox() > 0)
     {
         Can0.readFrame(incoming);
-        //Serial.print("ID: ");
-        //Serial.println(incoming.id, HEX);
+        Serial.print("ID: ");
+        Serial.println(incoming.id, HEX);
         for (int i = 0; i < 8; i++)
         {
             MSGFrame[i] = incoming.byte[i];
         }
         if (incoming.id == 0xC1)
         {
-            //Serial.print("Value: ");
-            //Serial.println((incoming.byte[1]));
+            Serial.print("Value: ");
+            Serial.println((incoming.byte[1]));
             return incoming.byte[1];
         }
         if (incoming.id == 0xC2)
         {
-            //Serial.print("Value: ");
-            //Serial.println((incoming.byte[1] + 2));
-            return incoming.byte[1] + 2;
+            Serial.print("Value: ");
+            Serial.println((incoming.byte[1] + 3));
+            return incoming.byte[1] + 3;
         }
     }
     return 0;
@@ -122,6 +88,15 @@ bool CANBus::msgCheck(uint16_t ID, uint8_t value, int8_t pos)
     return false;
 }
 
+
+
+
+
+
+
+
+
+// --------EVEYTHING BELOW LINE TAGGED TO BE REMOVED-----------
 // Get frame ID, used for confirmation
 uint16_t CANBus::getFrameID()
 {
@@ -132,7 +107,6 @@ uint16_t CANBus::getFrameID()
     }
     return incoming.id;
 }
-
 
 // return current value and reset hasMSG to true
 bool CANBus::hasMSGr() {

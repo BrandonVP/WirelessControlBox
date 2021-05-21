@@ -14,8 +14,8 @@ bool SerialManager::byteInbox()
 {
 	if (Serial3.available() > 0)
 	{
-		//Serial.print("Bytes in Que: ");
-		//Serial.println(Serial3.available());
+		Serial.print("Bytes in Que: ");
+		Serial.println(Serial3.available());
 	}
 	if (Serial3.available() >= 10)
 	{

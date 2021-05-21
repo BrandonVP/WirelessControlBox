@@ -175,13 +175,20 @@ void AxisPos::armSearch(CANBus can1, uint16_t * channel)
 // Update and draw the Axis positions on the view page
 void AxisPos::drawAxisPos(UTFT LCD)
 {
+	//LCD.setColor(0xB5B5B5);
+	//LCD.fillRoundRect(340, 35 + 0, 360, 75 + 0);
+	//LCD.fillRoundRect(340, 35 + 45, 360, 75 + 45);
+	//LCD.fillRoundRect(340, 35 + 90, 360, 75 + 90);
+	//LCD.fillRoundRect(340, 35 + 135, 360, 75 + 135);
+	//LCD.fillRoundRect(340, 35 + 180, 360, 75 + 180);
+	//LCD.fillRoundRect(340, 35 + 225, 360, 75 + 225);
+
 	// Text color
 	LCD.setColor(0xFFFF);
 
 	// Text background color
 	LCD.setBackColor(0xB5B5B5);
 
-	String test = String(printf("%02d", a3c1));
 	// Draw angles 
 	LCD.printNumI(a1c1, 205, 48);
 	LCD.printNumI(a2c1, 205, 93);

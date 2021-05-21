@@ -41,16 +41,21 @@ LinkedList<Program*> runList = LinkedList<Program*>();
 // Current selected program
 uint8_t selectedProgram = 0;
 
+// ---THIS CAN BE REWORKED TO SAVE MEMORY---
 // CAN message ID and frame, value can be changed in manualControlButtons
 uint16_t txIdManual = ARM1_M;
 
-// Used to determine if EXEC should run
+// Execute variables
 bool programLoaded = false;
-
-// Used to determine which PROG page should be loaded when button is pressed
-bool programOpen = false;
-
 bool loopProgram = true;
+bool programRunning = false;
+bool Arm1Ready = false;
+bool Arm2Ready = false;
+// ---THIS WILL LIMIT THE SIZE OF A PROGRAM TO 255 STEPS---
+uint8_t programProgress = 0;
+
+// Used hold open a program
+bool programOpen = false;
 
 // 0 = open, 1 = close, 2 = no change
 int8_t gripStatus = 2;
@@ -58,12 +63,13 @@ int8_t gripStatus = 2;
 // Program names
 String aList[10] = { "Program1", "Program2", "Program3", "Program4", "Program5", "Program6", "Program7", "Program8", "Program9", "Program10" };
 
-
 // Page control variables
 uint8_t page = 1;
 uint8_t oldPage = 1;
 bool hasDrawn = false;
-unsigned int timer = 0;
+
+// Timer for currant angle updates
+uint32_t timer = 0;
 
 /*=========================================================
     Framework Functions
@@ -719,6 +725,7 @@ void loadProgram()
     sdCard.readFile(aList[selectedProgram], runList);
 }
 
+/*
 // Executes program currently loaded into linked list
 void programRun()
 {
@@ -869,6 +876,7 @@ void programRun()
         isWait = true;
     }
 }
+*/
 
 // Button functions for program page 
 void programButtons()
@@ -943,7 +951,7 @@ void programButtons()
             if ((y >= 100) && (y <= 150))
             {
                 // Scroll up
-                waitForIt(420, 100, 470, 150);
+                waitForIt(460, 100, 510, 150);
                 if (scroll > 0)
                 {
                     scroll--;
@@ -953,8 +961,8 @@ void programButtons()
             if ((y >= 150) && (y <= 200))
             {
                 // Scroll down
-                waitForIt(420, 150, 470, 200);
-                if (scroll < 5)
+                waitForIt(460, 150, 510, 200);
+                if (scroll < 2)
                 {
                     scroll++;
                     drawProgramScroll(scroll);
@@ -979,6 +987,7 @@ void programButtons()
                 waitForItRect(255, 430, 355, 470);
                 runList.clear();
                 loadProgram();
+                programLoaded = true;
 
             }
             if ((x >= 360) && (x <= 460))
@@ -1360,8 +1369,7 @@ void programEditButtons()
 // Draws the config page
 void drawConfig()
 {
-    drawSquareBtn(141, 1, 799, 479, "", themeBackground, themeBackground, menuBtnColor, CENTER);
-    drawSquareBtn(141, 1, 478, 319, "", themeBackground, themeBackground, themeBackground, CENTER);
+    drawSquareBtn(141, 1, 799, 479, "", themeBackground, themeBackground, themeBackground, CENTER);
     drawSquareBtn(180, 10, 400, 45, F("Configuration"), themeBackground, themeBackground, menuBtnColor, CENTER);
     drawRoundBtn(150, 60, 300, 100, F("Home Ch1"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
     drawRoundBtn(310, 60, 460, 100, F("Set Ch1"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
@@ -1377,9 +1385,7 @@ void homeArm(uint8_t* armIDArray)
     byte data2[8] = { 0x00, 0x00, 0x00, 0xB4, 0x00, 0xB4, 0x00, 0xB4 };
     byte data3[8] = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
     can1.sendFrame(armIDArray[0], data1);
-    delay(150);
     can1.sendFrame(armIDArray[1], data2);
-    delay(150);
     can1.sendFrame(armIDArray[2], data3);
 }
 
@@ -1450,6 +1456,7 @@ void drawMenu()
     drawRoundBtn(10, 130, 130, 185, F("3-MOVE"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
     drawRoundBtn(10, 190, 130, 245, F("4-CONF"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
     drawRoundBtn(10, 250, 130, 305, F("5-EXEC"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawRoundBtn(10, 310, 130, 365, F("6-STOP"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
 }
 
 // the setup function runs once when you press reset or power the board
@@ -1458,7 +1465,6 @@ void setup() {
     Serial3.begin(57600);
     Wire.begin();        // join i2c bus (address optional for master)
 
-    can1.startCAN();
     bool hasFailed = sdCard.startSD();
     if (!hasFailed)
     {
@@ -1562,6 +1568,7 @@ void pageControl()
         // Call buttons if any
         break;
     case 2:
+        // If program open jump to page 6
         if (programOpen)
         {
             page = 6;
@@ -1601,13 +1608,15 @@ void pageControl()
         if (!hasDrawn)
         {
             hasDrawn = true;
-            programLoaded = true;
-            programRun();
-            oldPage = page;
-        }
-        if (loopProgram)
-        {
-            programRun();
+            if (programLoaded == true)
+            {
+                programRunning = true;
+                programProgress = 0;
+                Arm1Ready = true;
+                Arm2Ready = true;
+            }
+            // ---ERROR MESSAGE---
+            page = oldPage;
         }
         // Call buttons if any
         break;
@@ -1742,8 +1751,14 @@ void menuButtons()
             if ((y >= 250) && (y <= 305))
             {
                 waitForIt(10, 250, 130, 305);
+                oldPage = page;
                 page = 5;
                 hasDrawn = false;
+            }
+            if ((y >= 310) && (y <= 365))
+            {
+                waitForIt(10, 310, 130, 365);
+                programRunning = false;
             }
         }
     }
@@ -1792,24 +1807,177 @@ void TrafficManager()
         break;
 
         
-        case 3: // C2 Lower
+        case 3: // C1 Confirmation
+            Arm1Ready = true;
+            Arm2Ready = true;
+            Serial.println("Arm1Ready");
+        break;
+
+        
+        case 4: // C2 Lower
             axisPos.updateAxisPos(can1, ARM2_RX);
         break;
 
         
-        case 4: // C2 Upper
+        case 5: // C2 Upper
             axisPos.updateAxisPos(can1, ARM2_RX);
-        break;
-
-        
-        case 5: // C1 Confirmation
-
         break;
 
         
         case 6: // C2 Confirmation
-
+            Arm1Ready = true;
+            Arm2Ready = true;
+            Serial.println("Arm2Ready");
         break;
+    }
+}
+
+
+void executeProgram()
+{
+    // Return unless enabled
+    if (programRunning == false)
+    {
+        return;
+    }
+
+    if (programProgress == runList.size())
+    {
+        programRunning = false;
+    }
+
+    if (Arm1Ready == true && Arm2Ready == true)
+    {
+        // CAN messages for axis movements
+        uint8_t bAxis[8] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+        uint8_t tAxis[8] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+        uint8_t excMove[8] = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+        uint16_t IDArray[3];
+        uint16_t incID;
+
+        if (runList.get(programProgress)->getID() == ARM1_M)
+        {
+            IDArray[0] = ARM1_CONTROL;
+            IDArray[1] = ARM1_B;
+            IDArray[2] = ARM1_T;
+            incID = ARM1_RX;
+        }
+        if (runList.get(programProgress)->getID() == ARM2_M)
+        {
+            IDArray[0] = ARM2_CONTROL;
+            IDArray[1] = ARM2_B;
+            IDArray[2] = ARM2_T;
+            incID = ARM2_RX;
+        }
+
+        // Populate CAN messages with angles from current linkedlist
+
+        // Axis 1
+        if (runList.get(programProgress)->getA1() <= 0xFF)
+        {
+            bAxis[3] = runList.get(programProgress)->getA1();
+        }
+        else
+        {
+            bAxis[2] = runList.get(programProgress)->getA1() - 0xFF;
+            bAxis[3] = 0xFF;
+        }
+
+        // Axis 2
+        if (runList.get(programProgress)->getA2() <= 0xFF)
+        {
+            bAxis[5] = runList.get(programProgress)->getA2();
+        }
+        else
+        {
+            bAxis[4] = runList.get(programProgress)->getA2() - 0xFF;
+            bAxis[5] = 0xFF;
+        }
+
+        // Axis 3
+        if (runList.get(programProgress)->getA3() <= 0xFF)
+        {
+            bAxis[7] = runList.get(programProgress)->getA3();
+        }
+        else
+        {
+            bAxis[6] = runList.get(programProgress)->getA3() - 0xFF;
+            bAxis[7] = 0xFF;
+        }
+
+        // Send first frame with axis 1-3
+        can1.sendFrame(IDArray[1], bAxis);
+
+        // Axis 4
+        if (runList.get(programProgress)->getA4() <= 0xFF)
+        {
+            tAxis[3] = runList.get(programProgress)->getA4();
+        }
+        else
+        {
+            tAxis[2] = runList.get(programProgress)->getA4() - 0xFF;
+            tAxis[3] = 0xFF;
+        }
+
+        // Axis 5
+        if (runList.get(programProgress)->getA5() <= 0xFF)
+        {
+            tAxis[5] = runList.get(programProgress)->getA5();
+        }
+        else
+        {
+            tAxis[4] = runList.get(programProgress)->getA5() - 0xFF;
+            tAxis[5] = 0xFF;
+        }
+
+        // Axis 6
+        if (runList.get(programProgress)->getA5() <= 0xFF)
+        {
+            tAxis[7] = runList.get(programProgress)->getA6();
+        }
+        else
+        {
+            tAxis[6] = runList.get(programProgress)->getA6() - 0xFF;
+            tAxis[7] = 0xFF;
+        }
+
+        // Send second frame with axis 4-6
+        can1.sendFrame(IDArray[2], tAxis);
+
+        // Change to array of IDs
+        uint8_t ID = runList.get(programProgress)->getID();
+
+        // Grip on/off or hold based on current and next state
+        // If there was a change in the grip bool
+        excMove[6] = 0x00;
+        excMove[7] = 0x00;
+
+        if (runList.get(programProgress)->getGrip() == 0)
+        {
+            excMove[6] = 0x01;
+
+        }
+        else if (runList.get(programProgress)->getGrip() == 1)
+        {
+            excMove[7] = 0x01;
+        }
+
+        // Send third frame with grip and execute command
+        can1.sendFrame(IDArray[0], excMove);
+        
+
+        Arm1Ready = false;
+        Arm2Ready = false;
+        Serial.print("linkedListSize: ");
+        Serial.println(programProgress);
+        programProgress++;
+    }
+
+    // Loop if enabled
+    if (programProgress == runList.size() && loopProgram == true)
+    {
+        programProgress = 0;
+        programRunning = true;
     }
 }
 
@@ -1821,4 +1989,5 @@ void loop()
     // Background Processes
     TrafficManager();
     updateViewPage();
+    executeProgram();
 }
