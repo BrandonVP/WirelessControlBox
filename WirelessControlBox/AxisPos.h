@@ -3,6 +3,7 @@
 #include <UTFT.h>
 #ifndef _AxisPos_h
 #define _AxisPos_h
+
 #define LOWER 0x01
 #define ARM1ID 0xA0
 #define ARM1RXID 0xC1
@@ -11,12 +12,12 @@
 #define ARM2RXID 0xC2
 #define MSGDELAY 0x0A
 
-
 #if defined(ARDUINO) && ARDUINO >= 100
 	#include "arduino.h"
 #else
 	#include "WProgram.h"
 #endif
+
 class CANBus;
 
 class AxisPos
@@ -36,16 +37,9 @@ class AxisPos
 	 uint16_t a4c2 = 0;
 	 uint16_t a5c2 = 0;
 	 uint16_t a6c2 = 0;
-
-	 // Used to enable writing angle values to LCD if the controller responded with the requested angles
-	 bool isResponseCh1 = false;
-	 bool isResponseCh2 = false;
-
  public:
-	AxisPos();
 	void drawAxisPos(UTFT);
 	void updateAxisPos(CANBus, uint8_t);
-	void armSearch(CANBus, uint16_t*);
 	void sendRequest(CANBus);
 	int getA1C1();
 	int getA2C1();

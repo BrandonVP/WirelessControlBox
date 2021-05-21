@@ -22,13 +22,10 @@ class SerialManager
 {
 private:
 
-
 public:
 	bool byteInbox();
 	void startSerial();
 	void readFrame(CAN_FRAME1&);
 	void sendFrame(CAN_FRAME1);
 };
-
 #endif
-

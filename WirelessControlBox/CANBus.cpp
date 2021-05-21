@@ -2,15 +2,9 @@
 
 // 5/20/2021
 // CANBus hardware replaced with serial WiFi connection
-// This class can be merged with SerialManager in the future
+// This class could be merged with SerialManager in the future
 
 #include "CANBus.h"
-
-// Default Constructor
-CANBus::CANBus()
-{
-    // Currently unused
-}
 
 // CAN Bus send message
 void CANBus::sendFrame(uint16_t id, byte* frame)
@@ -75,7 +69,6 @@ void CANBus::resetMSGFrame()
 // Check if value exists in incoming message, used for confirmation
 bool CANBus::msgCheck(uint16_t ID, uint8_t value, int8_t pos)
 {
-    //Serial.println("msgCheck");
     // If buffer inbox has a message
     if (Can0.byteInbox() > 0)
     {
@@ -86,37 +79,4 @@ bool CANBus::msgCheck(uint16_t ID, uint8_t value, int8_t pos)
         }  
     }
     return false;
-}
-
-
-
-
-
-
-
-
-
-// --------EVEYTHING BELOW LINE TAGGED TO BE REMOVED-----------
-// Get frame ID, used for confirmation
-uint16_t CANBus::getFrameID()
-{
-    // If buffer inbox has a message
-    if (Can0.byteInbox() > 0)
-    {
-        Can0.readFrame(incoming);
-    }
-    return incoming.id;
-}
-
-// return current value and reset hasMSG to true
-bool CANBus::hasMSGr() {
-    bool temp = hasMSG;
-    hasMSG = true;
-    return temp;
-}
-
-
-bool CANBus::hasMessage()
-{
-    return Can0.byteInbox();
 }

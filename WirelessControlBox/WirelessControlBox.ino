@@ -71,6 +71,9 @@ bool hasDrawn = false;
 // Timer for currant angle updates
 uint32_t timer = 0;
 
+uint8_t errorMSGReturn = 2;
+
+
 /*=========================================================
     Framework Functions
 ===========================================================*/
@@ -465,7 +468,7 @@ void drawManualControl(int x = 146, int y = 80, bool drawGrip = true)
 }
 
 // Draw page button function
-void manualControlButtons()
+void manualControlButtons(int x1 = 146, int y1 = 80, bool drawGrip = true)
 {
     // Mutiply is a future funtion to allow movement of multiple angles at a time instead of just 1
     int multiply = 1;
@@ -485,7 +488,7 @@ void manualControlButtons()
         x = 800 - touchLocations[0].x;
         y = 480 - touchLocations[0].y;
 
-        if ((y >= 80) && (y <= 140))
+        if ((y >= y1) && (y <= (y1 + 60)))
         {
             // A1 Up
             if ((x >= 146) && (x <= 200))
@@ -530,7 +533,7 @@ void manualControlButtons()
                 data[6] = 0;
             }
         }
-        if ((y >= 140) && (y <= 200))
+        if ((y >= (y1 + 60)) && (y <= (y1 + 120)))
         {
             // A1 Down
             if ((x >= 156) && (x <= 200))
@@ -575,7 +578,7 @@ void manualControlButtons()
                 data[6] = 0;
             }
         }
-        if ((y >= 240) && (y <= 295))
+        if ((y >= (y1 + 160)) && (y <= (y1 + 215)))
         {
             if ((x >= 146) && (x <= 200))
             {
@@ -700,8 +703,8 @@ void drawProgram(int scroll = 0)
     // Scroll buttons
     myGLCD.setColor(menuBtnColor);
     myGLCD.setBackColor(themeBackground);
-    drawSquareBtn(460, 100, 510, 150, F("/\\"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
-    drawSquareBtn(460, 150, 510, 200, F("\\/"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawSquareBtn(460, 110, 510, 210, F("/\\"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawSquareBtn(460, 210, 510, 310, F("\\/"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
 
     // Draws program scroll box with current scroll value
     drawProgramScroll(scroll);
@@ -724,159 +727,6 @@ void loadProgram()
 {
     sdCard.readFile(aList[selectedProgram], runList);
 }
-
-/*
-// Executes program currently loaded into linked list
-void programRun()
-{
-    // Was this to clear leftover messages in buffer?
-    // Does it work? Is it needed?
-    can1.getFrameID();
-
-    // Bool control for while loop
-    bool isWait = true;
-
-    // Make sure a program was loaded to run
-    if (programLoaded == false)
-    {
-        return;
-    }
-
-    // CAN messages for axis movements
-    uint8_t bAxis[8] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-    uint8_t tAxis[8] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-    uint8_t excMove[8] = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-    uint16_t IDArray[3];
-    uint16_t incID;
-
-    for (uint8_t i = 0; i < runList.size(); i++)
-    {
-        if (runList.get(i)->getID() == ARM1_M)
-        {
-            IDArray[0] = ARM1_CONTROL;
-            IDArray[1] = ARM1_B;
-            IDArray[2] = ARM1_T;
-            incID = ARM1_RX;
-        }
-        if (runList.get(i)->getID() == ARM2_M)
-        {
-            IDArray[0] = ARM2_CONTROL;
-            IDArray[1] = ARM2_B;
-            IDArray[2] = ARM2_T;
-            incID = ARM2_RX;
-        }
-
-        // Populate CAN messages with angles from current linkedlist
-
-        // Axis 1
-        if (runList.get(i)->getA1() <= 0xFF)
-        {
-            bAxis[3] = runList.get(i)->getA1();
-        }
-        else
-        {
-            bAxis[2] = runList.get(i)->getA1() - 0xFF;
-            bAxis[3] = 0xFF;
-        }
-
-        // Axis 2
-        if (runList.get(i)->getA2() <= 0xFF)
-        {
-            bAxis[5] = runList.get(i)->getA2();
-        }
-        else
-        {
-            bAxis[4] = runList.get(i)->getA2() - 0xFF;
-            bAxis[5] = 0xFF;
-        }
-
-        // Axis 3
-        if (runList.get(i)->getA3() <= 0xFF)
-        {
-            bAxis[7] = runList.get(i)->getA3();
-        }
-        else
-        {
-            bAxis[6] = runList.get(i)->getA3() - 0xFF;
-            bAxis[7] = 0xFF;
-        }
-
-        // Send first frame with axis 1-3
-        can1.sendFrame(IDArray[1], bAxis);
-
-        // Axis 4
-        if (runList.get(i)->getA4() <= 0xFF)
-        {
-            tAxis[3] = runList.get(i)->getA4();
-        }
-        else
-        {
-            tAxis[2] = runList.get(i)->getA4() - 0xFF;
-            tAxis[3] = 0xFF;
-        }
-
-        // Axis 5
-        if (runList.get(i)->getA5() <= 0xFF)
-        {
-            tAxis[5] = runList.get(i)->getA5();
-        }
-        else
-        {
-            tAxis[4] = runList.get(i)->getA5() - 0xFF;
-            tAxis[5] = 0xFF;
-        }
-
-        // Axis 6
-        if (runList.get(i)->getA5() <= 0xFF)
-        {
-            tAxis[7] = runList.get(i)->getA6();
-        }
-        else
-        {
-            tAxis[6] = runList.get(i)->getA6() - 0xFF;
-            tAxis[7] = 0xFF;
-        }
-
-        delay(10);
-
-        // Send second frame with axis 4-6
-        can1.sendFrame(IDArray[2], tAxis);
-
-        // Change to array of IDs
-        uint8_t ID = runList.get(i)->getID();
-
-        // Grip on/off or hold based on current and next state
-        // If there was a change in the grip bool
-        excMove[6] = 0x00;
-        excMove[7] = 0x00;
-
-        if (runList.get(i)->getGrip() == 0)
-        {
-            excMove[6] = 0x01;
-
-        }
-        else if (runList.get(i)->getGrip() == 1)
-        {
-            excMove[7] = 0x01;
-        }
-
-        delay(10);
-
-        // Send third frame with grip and execute command
-        can1.sendFrame(IDArray[0], excMove);
-
-        // Wait for confirmation
-        while (isWait)
-        {
-            if (can1.msgCheck(incID, 0x03, 0x01))
-            {
-                isWait = false;
-            }
-        }
-        isWait = true;
-    }
-}
-*/
 
 // Button functions for program page 
 void programButtons()
@@ -948,20 +798,20 @@ void programButtons()
         }
         if ((x >= 460) && (x <= 510))
         {
-            if ((y >= 100) && (y <= 150))
+            if ((y >= 110) && (y <= 210))
             {
                 // Scroll up
-                waitForIt(460, 100, 510, 150);
+                waitForIt(460, 110, 510, 210);
                 if (scroll > 0)
                 {
                     scroll--;
                     drawProgramScroll(scroll);
                 }
             }
-            if ((y >= 150) && (y <= 200))
+            if ((y >= 210) && (y <= 310))
             {
                 // Scroll down
-                waitForIt(460, 150, 510, 200);
+                waitForIt(460, 210, 510, 310);
                 if (scroll < 2)
                 {
                     scroll++;
@@ -994,12 +844,11 @@ void programButtons()
             {
                 // Delete program
                 waitForItRect(360, 430, 460, 470);
-                bool result = errorMSG(F("Confirmation"), F("Permanently"), F("Delete File?"));
-                if (result)
-                {
-                    programDelete();
-                }
-                drawProgram();
+                errorMSGReturn = 2;
+                drawErrorMSG(F("Confirmation"), F("Permanently"), F("Delete File?"));
+                oldPage = page;
+                page = 7;
+                hasDrawn = false;
             }
             if ((x >= 465) && (x <= 565))
             {
@@ -1374,7 +1223,9 @@ void drawConfig()
     drawRoundBtn(150, 60, 300, 100, F("Home Ch1"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
     drawRoundBtn(310, 60, 460, 100, F("Set Ch1"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
     drawRoundBtn(150, 110, 300, 150, F("Home Ch2"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
-    drawRoundBtn(310, 110, 460, 150, F("Set ch2"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawRoundBtn(310, 110, 460, 150, F("Set Ch2"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawRoundBtn(150, 160, 300, 200, F("Loop On"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
+    drawRoundBtn(310, 160, 460, 200, F("Loop Off"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
     return;
 }
 
@@ -1433,6 +1284,19 @@ void configButtons()
             {
                 waitForIt(310, 110, 460, 150);
                 can1.sendFrame(arm2IDArray[2], setHomeIdPtr);
+            }
+        }
+        if ((y >= 160) && (y <= 200))
+        {
+            if ((x >= 150) && (x <= 300))
+            {
+                waitForIt(150, 160, 300, 200);
+                loopProgram = true;
+            }
+            if ((x >= 310) && (x <= 460))
+            {
+                waitForIt(310, 160, 460, 200);
+                loopProgram = false;
             }
         }
     }
@@ -1556,7 +1420,7 @@ void pageControl()
     // Switch which page to load
     switch (page)
     {
-    case 1:
+    case 1: // View Page
         // Draw page
         if (!hasDrawn)
         {
@@ -1567,12 +1431,17 @@ void pageControl()
         }
         // Call buttons if any
         break;
-    case 2:
+    case 2: // Program page
         // If program open jump to page 6
         if (programOpen)
         {
             page = 6;
             break;
+        }
+        if (errorMSGReturn == 1)
+        {
+            programDelete();
+            errorMSGReturn = 2;
         }
         // Draw page
         if (!hasDrawn)
@@ -1583,7 +1452,7 @@ void pageControl()
         // Call buttons if any
         programButtons();
         break;
-    case 3:
+    case 3: // Move page
         // Draw page
         if (!hasDrawn)
         {
@@ -1593,7 +1462,7 @@ void pageControl()
         // Call buttons if any
         manualControlButtons();
         break;
-    case 4:
+    case 4: // Configuation page
         // Draw page
         if (!hasDrawn)
         {
@@ -1603,7 +1472,7 @@ void pageControl()
         // Call buttons if any
         configButtons();
         break;
-    case 5:
+    case 5: // Execute
         // Draw page
         if (!hasDrawn)
         {
@@ -1620,8 +1489,8 @@ void pageControl()
         }
         // Call buttons if any
         break;
-    case 6:
-        // Program edit page
+    case 6: // Program edit page
+        // Draw page
         if (!hasDrawn)
         {
             hasDrawn = true;
@@ -1632,11 +1501,31 @@ void pageControl()
         // Call buttons if any
         programEditButtons();
         break;
+
+
+    case 7: // Error page
+        // Draw page
+        if (!hasDrawn)
+        {
+            hasDrawn = true;
+        }
+        if (errorMSGReturn == 0 || errorMSGReturn == 1)
+        {
+            page = oldPage;
+            hasDrawn = false;
+        }
+        // Call buttons if any
+        errorMSGButtons();
+        break;
     }
 }
 
+// errorMSGReturn
+// 0 = false
+// 1 = true
+// 2 = no value
 // Error Message function
-bool errorMSG(String title, String eMessage1, String eMessage2)
+bool drawErrorMSG(String title, String eMessage1, String eMessage2)
 {
     drawSquareBtn(145, 100, 415, 220, "", menuBackground, menuBtnColor, menuBtnColor, CENTER);
     drawSquareBtn(145, 100, 415, 130, title, themeBackground, menuBtnColor, menuBtnBorder, LEFT);
@@ -1645,44 +1534,43 @@ bool errorMSG(String title, String eMessage1, String eMessage2)
     drawRoundBtn(365, 100, 415, 130, "X", menuBtnColor, menuBtnColor, menuBtnText, CENTER);
     drawRoundBtn(155, 180, 275, 215, "Confirm", menuBtnColor, menuBtnColor, menuBtnText, CENTER);
     drawRoundBtn(285, 180, 405, 215, "Cancel", menuBtnColor, menuBtnColor, menuBtnText, CENTER);
+}
 
-    while (true)
+void errorMSGButtons()
+{
+    // Touch screen controls
+    uint8_t  ss[1];
+    readGT9271TouchAddr(0x814e, ss, 1);
+    uint8_t status = ss[0];
+    if ((status & 0x80) != 0) 
     {
-        // Touch screen controls
-        uint8_t  ss[1];
-        readGT9271TouchAddr(0x814e, ss, 1);
-        uint8_t status = ss[0];
-        if ((status & 0x80) != 0)  // touch status   Software touch interrupt
-        {
-            readGT9271TouchLocation(touchLocations, 10);
-            x = 800 - touchLocations[0].x;
-            y = 480 - touchLocations[0].y;
+        readGT9271TouchLocation(touchLocations, 10);
+        x = 800 - touchLocations[0].x;
+        y = 480 - touchLocations[0].y;
 
-            if ((x >= 365) && (x <= 415))
+        if ((x >= 365) && (x <= 415))
+        {
+            if ((y >= 100) && (y <= 130))
             {
-                if ((y >= 100) && (y <= 130))
-                {
-                    // 1st position of scroll box
-                    waitForItRect(365, 100, 415, 130);
-                    return false;
-                }
-            }
-            if ((y >= 180) && (y <= 215))
-            {
-                if ((x >= 155) && (x <= 275))
-                {
-                    // 1st position of scroll box
-                    waitForItRect(155, 180, 275, 215);
-                    return true;
-                }
-                if ((x >= 285) && (x <= 405))
-                {
-                    // 1st position of scroll box
-                    waitForItRect(285, 180, 405, 215);
-                    return false;
-                }
+                waitForItRect(365, 100, 415, 130);
+                errorMSGReturn = 0;
             }
         }
+        if ((y >= 180) && (y <= 215))
+        {
+            if ((x >= 155) && (x <= 275))
+            {
+                waitForItRect(155, 180, 275, 215);
+                errorMSGReturn = 1;
+
+            }
+            if ((x >= 285) && (x <= 405))
+            {
+                waitForItRect(285, 180, 405, 215);
+                errorMSGReturn = 0;
+            }
+        }
+
     }
 }
 
@@ -1733,6 +1621,7 @@ void menuButtons()
             if ((y >= 70) && (y <= 125))  
             {
                 waitForIt(10, 70, 130, 125);
+                oldPage = page;
                 page = 2;
                 hasDrawn = false;
             }
@@ -1764,30 +1653,7 @@ void menuButtons()
     }
 }
 
-/*
-void testfn()
-{
-    while (1)
-    {
-        readGT9271TouchLocation(touchLocations, 10);
-        uint8_t  ss[1];
-        readGT9271TouchAddr(0x814e, ss, 1);
-        uint8_t status = ss[0];
-        if ((status & 0x80) != 0)  // touch status   Software touch interrupt  
-        {
-            readGT9271TouchLocation(touchLocations, 10);
-            Serial.println("Touch: ");
-            Serial.println(touchLocations[0].x);
-            Serial.println(touchLocations[0].y);
-            if (touchLocations[0].x > 1 && touchLocations[0].x < 800 && touchLocations[0].y > 1 && touchLocations[0].y < 480)
-            {
-                Serial.println("Touch: ");
-            }
-        }
-    }
-}
-*/
-
+//
 void TrafficManager()
 {
     uint8_t sw_fn = can1.processFrame();
@@ -1832,7 +1698,7 @@ void TrafficManager()
     }
 }
 
-
+//
 void executeProgram()
 {
     // Return unless enabled
@@ -1981,6 +1847,7 @@ void executeProgram()
     }
 }
 
+//
 void loop()
 {
     // GUI
@@ -1991,3 +1858,27 @@ void loop()
     updateViewPage();
     executeProgram();
 }
+
+/*
+void testfn()
+{
+    while (1)
+    {
+        readGT9271TouchLocation(touchLocations, 10);
+        uint8_t  ss[1];
+        readGT9271TouchAddr(0x814e, ss, 1);
+        uint8_t status = ss[0];
+        if ((status & 0x80) != 0)  // touch status   Software touch interrupt
+        {
+            readGT9271TouchLocation(touchLocations, 10);
+            Serial.println("Touch: ");
+            Serial.println(touchLocations[0].x);
+            Serial.println(touchLocations[0].y);
+            if (touchLocations[0].x > 1 && touchLocations[0].x < 800 && touchLocations[0].y > 1 && touchLocations[0].y < 480)
+            {
+                Serial.println("Touch: ");
+            }
+        }
+    }
+}
+*/

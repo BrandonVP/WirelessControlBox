@@ -9,7 +9,7 @@ void SerialManager::startSerial()
 	//Serial3.begin(19200); 
 }
 
-
+//
 bool SerialManager::byteInbox()
 {
 	if (Serial3.available() > 0)
@@ -27,15 +27,17 @@ bool SerialManager::byteInbox()
 	}
 }
 
+//
 void SerialManager::readFrame(CAN_FRAME1 &rxCAN)
 {
 	//if ((Serial3.available() >= 9) && (Serial3.read() == FLOW_CONTROL_VALUE))
 	if ((Serial3.available() >= 10))
 	{
-		while (Serial3.read() != FLOW_CONTROL_VALUE) 
+		uint32_t watchDog = millis();
+		while (Serial3.read() != FLOW_CONTROL_VALUE && millis() - watchDog < 400)
 		{
 			// Read until flow control value is hit
-			// This auto aligns the messages
+			// This auto aligns the messages if misaligned at startup
 		}
 		rxCAN.id = Serial3.read();
 		for (uint8_t i = 0; i < ARRAY_SIZE; i++)
@@ -45,6 +47,7 @@ void SerialManager::readFrame(CAN_FRAME1 &rxCAN)
 	}
 }
 
+//
 void SerialManager::sendFrame(CAN_FRAME1 txCAN)
 {
 	Serial3.write(0xFF);
