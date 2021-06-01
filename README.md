@@ -1,5 +1,24 @@
 # WirelessControlBox
 
+Wireless conroller for my 6DOF Robotic system. This was a project for my Embedded Systems class
+
+IDE: I am using visual studios with vMicro plugin 
+
+Hardware:
+Custom made enclosure
+Arduino Due
+Micro SD Card reader
+SD Card ribbon extension
+CAN Bus transceiver
+
+IDE: I am using visual studios with vMicro plugin 
+
+Hardware:
+Custom made enclosure
+Arduino Due
+Micro SD Card reader
+SD Card ribbon extension
+CAN Bus transceiver
 
 Hardware: Arduino Due, SD Card reader, 9" buydisplay capacitive LCD with shield, ESP-12E (8266), Step down buck converter (powers esp)
 
