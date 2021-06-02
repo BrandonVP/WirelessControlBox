@@ -69,14 +69,6 @@ void AxisPos::updateAxisPos(CANBus can1, uint8_t channel)
 // Update and draw the Axis positions on the view page
 void AxisPos::drawAxisPos(UTFT LCD)
 {
-	//LCD.setColor(0xB5B5B5);
-	//LCD.fillRoundRect(340, 35 + 0, 360, 75 + 0);
-	//LCD.fillRoundRect(340, 35 + 45, 360, 75 + 45);
-	//LCD.fillRoundRect(340, 35 + 90, 360, 75 + 90);
-	//LCD.fillRoundRect(340, 35 + 135, 360, 75 + 135);
-	//LCD.fillRoundRect(340, 35 + 180, 360, 75 + 180);
-	//LCD.fillRoundRect(340, 35 + 225, 360, 75 + 225);
-
 	// Text color
 	LCD.setColor(0xFFFF);
 
@@ -84,18 +76,18 @@ void AxisPos::drawAxisPos(UTFT LCD)
 	LCD.setBackColor(0xB5B5B5);
 
 	// Draw angles 
-	LCD.printNumI(a1c1, 205, 48);
-	LCD.printNumI(a2c1, 205, 93);
-	LCD.printNumI(a3c1, 205, 138);
-	LCD.printNumI(a4c1, 205, 183);
-	LCD.printNumI(a5c1, 205, 228);
-	LCD.printNumI(a6c1, 205, 273);
-	LCD.printNumI(a1c2, 315, 48);
-	LCD.printNumI(a2c2, 315, 93);
-	LCD.printNumI(a3c2, 315, 138);
-	LCD.printNumI(a4c2, 315, 183);
-	LCD.printNumI(a5c2, 315, 228);
-	LCD.printNumI(a6c2, 315, 273);
+	LCD.printNumI(a1c1, 205, 48, 3, '0');
+	LCD.printNumI(a2c1, 205, 93, 3, '0');
+	LCD.printNumI(a3c1, 205, 138, 3, '0');
+	LCD.printNumI(a4c1, 205, 183, 3, '0');
+	LCD.printNumI(a5c1, 205, 228, 3, '0');
+	LCD.printNumI(a6c1, 205, 273, 3, '0');
+	LCD.printNumI(a1c2, 315, 48, 3, '0');
+	LCD.printNumI(a2c2, 315, 93, 3, '0');
+	LCD.printNumI(a3c2, 315, 138, 3, '0');
+	LCD.printNumI(a4c2, 315, 183, 3, '0');
+	LCD.printNumI(a5c2, 315, 228, 3, '0');
+	LCD.printNumI(a6c2, 315, 273, 3, '0');
 }
 
 // Get angle for programming

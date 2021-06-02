@@ -77,7 +77,7 @@ uint8_t errorMSGReturn = 2;
 /*=========================================================
     Framework Functions
 ===========================================================*/
-//
+// Script to print bitmap, I forget where I found it at 
 void bmpDraw(char* filename, int x, int y) {
     File     bmpFile;
     int      bmpWidth, bmpHeight;   // W+H in pixels
@@ -226,7 +226,7 @@ uint32_t read32(File f) {
 }
 
 
-// Custom bitmap
+// Print Robot Arm bitmap
 void print_icon(int x, int y, const unsigned char icon[]) {
     myGLCD.setColor(menuBtnColor);
     myGLCD.setBackColor(themeBackground);
@@ -373,12 +373,10 @@ void waitForItRect(int x1, int y1, int x2, int y2, int txId, byte data[])
     myGLCD.setColor(themeBackground);
     myGLCD.drawRect(x1, y1, x2, y2);
 
-    // Code needs to be tested with CAN Bus working
-
-    
     uint8_t  ss[1];
     unsigned long timer1 = millis();
     unsigned long timer2 = millis();
+
     while ((millis() - timer1 < 5))
     {
         readGT9271TouchAddr(0x814e, ss, 1);
@@ -393,14 +391,7 @@ void waitForItRect(int x1, int y1, int x2, int y2, int txId, byte data[])
             timer1 = millis();
         }
     }
-    
 
-    //while (myTouch.dataAvailable())
-    //{
-        //can1.sendFrame(txId, data);
-        //myTouch.read();
-        //delay(100);
-    //}
     myGLCD.setColor(menuBtnBorder);
     myGLCD.drawRect(x1, y1, x2, y2);
 }
@@ -420,11 +411,9 @@ void drawManualControl(int x = 146, int y = 80, bool drawGrip = true)
     drawSquareBtn((x + 34), (y - 70), (x + 254), (y - 35), F("Manual Control"), themeBackground, themeBackground, menuBtnColor, CENTER);
 
     // Manual control axis labels
-    //myGLCD.setColor(VGA_BLACK);
-    //myGLCD.setBackColor(VGA_BLACK);
-    //myGLCD.print("Axis", CENTER, 60);
     int j = 1;
-    for (int i = x; i < (x + 334 - 45); i = i + 54) {
+    for (int i = x; i < (x + 334 - 45); i = i + 54) 
+    {
         myGLCD.setColor(menuBtnColor);
         myGLCD.setBackColor(themeBackground);
         myGLCD.printNumI(j, i + 20, y - 20);
@@ -432,14 +421,14 @@ void drawManualControl(int x = 146, int y = 80, bool drawGrip = true)
     }
 
     // Draw the upper row of movement buttons
-        // x_Start, y_start, x_Stop, y_stop
-    for (int i = x; i < (x + 334 - 45); i = i + 54) {
+    for (int i = x; i < (x + 334 - 45); i = i + 54) 
+    {
         drawSquareBtn(i, y, (i + 54), (y + 60), F("/\\"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
     }
 
     // Draw the bottom row of movement buttons
-    // x_Start, y_start, x_Stop, y_stop
-    for (int i = x; i < (x + 334 - 54); i = i + 54) {
+    for (int i = x; i < (x + 334 - 54); i = i + 54) 
+    {
         drawSquareBtn(i, (y + 60), i + 54, (y + 120), F("\\/"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
     }
 
@@ -463,8 +452,6 @@ void drawManualControl(int x = 146, int y = 80, bool drawGrip = true)
         drawSquareBtn(270, 240, 360, 295, F("Open"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
         drawSquareBtn(360, 240, 450, 295, F("Close"), menuBtnColor, menuBtnBorder, menuBtnText, CENTER);
     }
-
-    return;
 }
 
 // Draw page button function
@@ -631,6 +618,7 @@ void drawView()
     // Boxes for current arm angles
     uint8_t yStart = 35;
     uint8_t yStop = 75;
+
     // Arm 1
     drawRoundBtn(310, 5, 415, 40, F("Arm2"), themeBackground, themeBackground, menuBtnColor, CENTER);
     drawRoundBtn(310, yStart + 0, 415, yStop + 0, DEG, menuBackground, menuBackground, menuBtnColor, RIGHT);
@@ -897,13 +885,6 @@ void drawProgramEditScroll(uint8_t scroll = 0)
         y = (y + 40);
         //scroll++;
     }
-    // Load linked list from SD card unless already in linked list
-    // Need some gui to edit, add and instert nodes
-    // Save button will write to SD card and return
-    // cancel button will return without saving
-    // 5 buttons in total
-
-    // To edit a node just replace with a new position
     myGLCD.setFont(BigFont);
 }
 
@@ -1300,7 +1281,6 @@ void configButtons()
             }
         }
     }
-    return;
 }
 
 
@@ -1387,8 +1367,6 @@ void setup() {
         uint8_t re = GT9271_Send_Cfg((uint8_t*)GTP_CFG_DATA, sizeof(GTP_CFG_DATA));
     }
 
-    //Serial.println("Capacitive touch screen initialized success");
-
     // Setup the LCD
     myGLCD.InitLCD();
     // -------------------------------------------------------------
@@ -1397,7 +1375,6 @@ void setup() {
   // -------------------------------------------------------------
     myGLCD.setFont(BigFont);
     myGLCD.clrScr();
-
 
     myGLCD.setColor(VGA_BLACK);
     myGLCD.setBackColor(VGA_WHITE);
@@ -1570,7 +1547,6 @@ void errorMSGButtons()
                 errorMSGReturn = 0;
             }
         }
-
     }
 }
 
@@ -1858,27 +1834,3 @@ void loop()
     updateViewPage();
     executeProgram();
 }
-
-/*
-void testfn()
-{
-    while (1)
-    {
-        readGT9271TouchLocation(touchLocations, 10);
-        uint8_t  ss[1];
-        readGT9271TouchAddr(0x814e, ss, 1);
-        uint8_t status = ss[0];
-        if ((status & 0x80) != 0)  // touch status   Software touch interrupt
-        {
-            readGT9271TouchLocation(touchLocations, 10);
-            Serial.println("Touch: ");
-            Serial.println(touchLocations[0].x);
-            Serial.println(touchLocations[0].y);
-            if (touchLocations[0].x > 1 && touchLocations[0].x < 800 && touchLocations[0].y > 1 && touchLocations[0].y < 480)
-            {
-                Serial.println("Touch: ");
-            }
-        }
-    }
-}
-*/
