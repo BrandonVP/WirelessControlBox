@@ -1,7 +1,7 @@
 // 
 // 
 // Serial out debugging will make program unstable / lock up
-
+// A end of message check of 0xFF is sent between each message
 #include "SerialManager.h"
 
 void SerialManager::startSerial()
@@ -14,8 +14,8 @@ bool SerialManager::byteInbox()
 {
 	if (Serial3.available() > 0)
 	{
-		Serial.print("Bytes in Que: ");
-		Serial.println(Serial3.available());
+		//Serial.print("Bytes in Que: ");
+		//Serial.println(Serial3.available());
 	}
 	if (Serial3.available() >= 10)
 	{
@@ -34,6 +34,8 @@ void SerialManager::readFrame(CAN_FRAME1 &rxCAN)
 	if ((Serial3.available() >= 10))
 	{
 		uint32_t watchDog = millis();
+
+		// This code is blocking but should only run if needed one time at startup when AxisPos sends first request for current angles
 		while (Serial3.read() != FLOW_CONTROL_VALUE && millis() - watchDog < 400)
 		{
 			// Read until flow control value is hit

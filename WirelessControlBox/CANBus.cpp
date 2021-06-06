@@ -37,7 +37,7 @@ uint8_t CANBus::processFrame()
         Can0.readFrame(incoming);
         Serial.print("ID: ");
         Serial.println(incoming.id, HEX);
-        for (int i = 0; i < 8; i++)
+        for (uint8_t i = 0; i < 8; i++)
         {
             MSGFrame[i] = incoming.byte[i];
         }

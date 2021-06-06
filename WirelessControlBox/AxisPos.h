@@ -8,7 +8,7 @@
 #define ARM1ID 0xA0
 #define ARM1RXID 0xC1
 #define UPPER 0x02
-#define ARM2ID 0x0B0
+#define ARM2ID 0xB0
 #define ARM2RXID 0xC2
 #define MSGDELAY 0x0A
 
