@@ -12,6 +12,8 @@ TX CAN Buffer / Scheduler
 Program Edit
 -Add wait
 -Add Sensors
+
+New non-blocking design for the 3 waitForIt functions
 ===========================================================
     End Todo List
 =========================================================*/
@@ -54,7 +56,6 @@ LinkedList<Program*> runList = LinkedList<Program*>();
 // Current selected program
 uint8_t selectedProgram = 0;
 
-// ---THIS CAN BE REWORKED TO SAVE MEMORY---
 // CAN message ID and frame, value can be changed in manualControlButtons
 uint16_t txIdManual = ARM1_M;
 
@@ -64,7 +65,7 @@ bool loopProgram = true;
 bool programRunning = false;
 bool Arm1Ready = false;
 bool Arm2Ready = false;
-// ---THIS WILL LIMIT THE SIZE OF A PROGRAM TO 255 STEPS---
+// THIS WILL LIMIT THE SIZE OF A PROGRAM TO 255 MOVEMENTS
 uint8_t programProgress = 0;
 
 // Used hold open a program
@@ -238,22 +239,20 @@ uint32_t read32(File f) {
 }
 
 // Print Robot Arm bitmap
-void print_icon(int x, int y, const unsigned char icon[]) {
+void print_icon(int x, int y, const unsigned char icon[]) 
+{
     myGLCD.setColor(menuBtnColor);
     myGLCD.setBackColor(themeBackground);
     int i = 0, row, column, bit, temp;
     int constant = 1;
-    for (row = 0; row < 40; row++) {
-        for (column = 0; column < 5; column++) {
+    for (row = 0; row < 40; row++) 
+    {
+        for (column = 0; column < 5; column++) 
+        {
             temp = icon[i];
-            for (bit = 7; bit >= 0; bit--) {
-
-                if (temp & constant) {
-                    myGLCD.drawPixel(x + (column * 8) + (8 - bit), y + row);
-                }
-                else {
-
-                }
+            for (bit = 7; bit >= 0; bit--) 
+            {
+                if (temp & constant) {myGLCD.drawPixel(x + (column * 8) + (8 - bit), y + row);}
                 temp >>= 1;
             }
             i++;
@@ -372,8 +371,7 @@ void waitForItRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
     myGLCD.drawRect(x1, y1, x2, y2);
 }
 
-// Highlights square buttons when selected and sends CAN message
-// This function is used for manual control
+// Highlights square buttons when selected and sends CAN message, used by manual control
 void waitForItRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t txId, byte data[])
 {
     myGLCD.setColor(themeBackground);
@@ -383,6 +381,7 @@ void waitForItRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t 
     unsigned long timer1 = millis();
     unsigned long timer2 = millis();
 
+    // Hacked work around for not fullying understanding the Touch LCD hardware, needs reworked
     while ((millis() - timer1 < 5))
     {
         readGT9271TouchAddr(0x814e, ss, 1);
@@ -861,13 +860,11 @@ void drawProgramEditScroll(uint8_t scroll = 0)
 {
     myGLCD.setFont(SmallFont);
     uint8_t nodeSize = runList.size();
-    Serial.println(nodeSize);
     int y = 50;
     int x = 150;
     uint8_t height = 40;
     int width = 295;
 
-    // Each node should be listed with all information, might need small text
     for (int i = 0; i < 9; i++)
     {
         String position = String(i + scroll);
@@ -876,17 +873,8 @@ void drawProgramEditScroll(uint8_t scroll = 0)
         String label = position + a + String(runList.get(i + scroll)->getA1()) + b + String(runList.get(i + scroll)->getA2())
             + b + String(runList.get(i + scroll)->getA3()) + b + String(runList.get(i + scroll)->getA4()) + b + String(runList.get(i + scroll)->getA5())
             + b + String(runList.get(i + scroll)->getA6()) + b + String(runList.get(i + scroll)->getGrip()) + b + String(runList.get(i + scroll)->getID());
-        if (i + scroll < nodeSize)
-        {
-            drawSquareBtn(x, y, (x + width), (y + height), label, menuBackground, menuBtnBorder, menuBtnText, LEFT);
-        }
-        else
-        {
-            drawSquareBtn(x, y, (x + width), (y + height), "", menuBackground, menuBtnBorder, menuBtnText, LEFT);
-        }
-
-        y = (y + 40);
-        //scroll++;
+        (i + scroll < nodeSize) ? drawSquareBtn(x, y, (x + width), (y + height), label, menuBackground, menuBtnBorder, menuBtnText, LEFT) : drawSquareBtn(x, y, (x + width), (y + height), "", menuBackground, menuBtnBorder, menuBtnText, LEFT);
+        y += 40;
     }
     myGLCD.setFont(BigFont);
 }
@@ -1936,7 +1924,6 @@ void executeProgram()
         if (runList.get(programProgress)->getGrip() == 0)
         {
             excMove[6] = 0x01;
-
         }
         else if (runList.get(programProgress)->getGrip() == 1)
         {
