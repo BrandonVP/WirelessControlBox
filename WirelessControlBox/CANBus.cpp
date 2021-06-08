@@ -28,7 +28,7 @@ uint8_t* CANBus::getFrame()
     return MSGFrame;
 }
 
-// Get and return message frame from specified rxID
+//
 uint8_t CANBus::processFrame()
 {
     // If buffer inbox has a message

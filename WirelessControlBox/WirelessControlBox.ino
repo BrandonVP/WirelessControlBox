@@ -14,6 +14,8 @@ Program Edit
 -Add Sensors
 
 New non-blocking design for the 3 waitForIt functions
+
+Disable program edit when program is running
 ===========================================================
     End Todo List
 =========================================================*/
@@ -83,7 +85,7 @@ uint8_t page = 1;
 uint8_t oldPage = 1;
 bool hasDrawn = false;
 
-// Timer for currant angle updates
+// Timer for current angle updates
 uint32_t timer = 0;
 
 uint8_t errorMSGReturn = 2;
@@ -829,7 +831,6 @@ void programButtons()
                 runList.clear();
                 loadProgram();
                 programLoaded = true;
-
             }
             if ((x >= 360) && (x <= 460))
             {
@@ -844,7 +845,7 @@ void programButtons()
             if ((x >= 465) && (x <= 565))
             {
                 // Rename program
-                waitForItRect(465, 430, 565, 470);
+                //waitForItRect(465, 430, 565, 470);
 
             }
         }
@@ -981,15 +982,7 @@ void addNode(uint16_t insert = -1)
     // Create program object with array positions, grip on/off, and channel
     Program* node = new Program(posArray, gripStatus, txIdManual);
 
-    if (insert < 0)
-    {
-        // Add created object to linked list
-        runList.add(node);
-    }
-    else
-    {
-        runList.add(insert, node);
-    }
+    (insert < 0) ? runList.add(node) : runList.add(insert, node);
 }
 
 // Delete node from linked list
@@ -1537,7 +1530,6 @@ void pageControl()
         // Draw page
         if (!hasDrawn)
         {
-            Serial.println("here1");
             drawView();
             axisPos.drawAxisPos(myGLCD);
             axisPos.drawAxisPos(myGLCD);
@@ -1615,8 +1607,6 @@ void pageControl()
         // Call buttons if any
         programEditButtons();
         break;
-
-
     case 7: // Error page
         // Draw page
         if (!hasDrawn)
@@ -1772,38 +1762,57 @@ void TrafficManager()
     uint8_t sw_fn = can1.processFrame();
     switch(sw_fn)
     {
+        uint8_t sw_fn = can1.processFrame();
+        switch (sw_fn)
+        {
         case 0: // No traffic
 
-        break;
-        
+            break;
+
         case 1: // C1 lower
             axisPos.updateAxisPos(can1, ARM1_RX);
-        break;
+            if (page == 1)
+            {
+                axisPos.drawAxisPos(myGLCD);
+            }
+            break;
 
         case 2: //  C1 Upper
             axisPos.updateAxisPos(can1, ARM1_RX);
-        break;
+            if (page == 1)
+            {
+                axisPos.drawAxisPos(myGLCD);
+            }
+            break;
 
         case 3: // C1 Confirmation
             Arm1Ready = true;
             Arm2Ready = true;
             Serial.println("Arm1Ready");
-        break;
+            break;
 
         case 4: // C2 Lower
             axisPos.updateAxisPos(can1, ARM2_RX);
-        break;
+            if (page == 1)
+            {
+                axisPos.drawAxisPos(myGLCD);
+            }
+            break;
 
         case 5: // C2 Upper
             axisPos.updateAxisPos(can1, ARM2_RX);
-        break;
+            if (page == 1)
+            {
+                axisPos.drawAxisPos(myGLCD);
+            }
+            break;
 
         case 6: // C2 Confirmation
             Arm1Ready = true;
             Arm2Ready = true;
             Serial.println("Arm2Ready");
-        break;
-    }
+            break;
+        }
 }
 
 //
@@ -1956,6 +1965,6 @@ void loop()
 
     // Background Processes
     TrafficManager();
-    updateViewPage();
+    //updateViewPage();
     executeProgram();
 }
