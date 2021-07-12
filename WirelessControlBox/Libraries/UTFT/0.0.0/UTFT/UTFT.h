@@ -15,9 +15,9 @@ Software SPI/8080 16-bit Parallel Interface 3.3V Power Supply
 
 #define UTFT_VERSION	279
 
-#define ALIGN_LEFT 0
-#define ALIGN_RIGHT 9999
-#define ALIGN_CENTER 9998
+#define LEFT 0
+#define RIGHT 9999
+#define CENTER 9998
 
 #define PORTRAIT 0
 #define LANDSCAPE 1

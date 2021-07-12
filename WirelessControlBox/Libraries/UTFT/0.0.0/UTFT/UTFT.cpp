@@ -1003,16 +1003,16 @@ void UTFT::print(char *st, int x, int y, int deg)
 
 	if (orient==PORTRAIT)
 	{
-	if (x==ALIGN_RIGHT)
+	if (x==RIGHT)
 		x=(disp_x_size+1)-(stl*cfont.x_size);
-	if (x==ALIGN_CENTER)
+	if (x==CENTER)
 		x=((disp_x_size+1)-(stl*cfont.x_size))/2;
 	}
 	else
 	{
-	if (x==ALIGN_RIGHT)
+	if (x==RIGHT)
 		x=(disp_y_size+1)-(stl*cfont.x_size);
-	if (x==ALIGN_CENTER)
+	if (x==CENTER)
 		x=((disp_y_size+1)-(stl*cfont.x_size))/2;
 	}
 

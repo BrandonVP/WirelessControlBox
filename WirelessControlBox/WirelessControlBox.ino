@@ -1935,7 +1935,7 @@ void executeProgram()
         }
 
         // Send third frame with grip and execute command
-        can1.sendFrame(IDArray[0], excuteMove);
+        can1.sendFrame(IDArray[0], executeMove);
         
         Arm1Ready = false;
         Arm2Ready = false;
