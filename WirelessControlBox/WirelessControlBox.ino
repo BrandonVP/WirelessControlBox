@@ -67,6 +67,7 @@ bool loopProgram = true;
 bool programRunning = false;
 bool Arm1Ready = false;
 bool Arm2Ready = false;
+bool eStopActivated = false;
 // THIS (uint8_t) WILL LIMIT THE SIZE OF A PROGRAM TO 255 MOVEMENTS
 uint8_t programProgress = 0;
 
@@ -1518,6 +1519,11 @@ void setup() {
 // Page control framework
 void pageControl()
 {
+    if (eStopActivated)
+    {
+        return;
+    }
+
     // Check if button on menu is pushed
     menuButtons();
 
@@ -1807,12 +1813,27 @@ void TrafficManager()
         Arm2Ready = true;
         Serial.println("Arm2Ready");
         break;
+    
+    case 101: // eStop Activated
+        eStopActivated = true;
+        drawErrorMSG(F("Error"), F("eStop"), F("Activated"));
+        break;
+
+    case 100:// eStop De-Activated
+        eStopActivated = false;
+        hasDrawn = false;
+        break;
     }
 }
 
 //
 void executeProgram()
 {
+    if (eStopActivated)
+    {
+        return;
+    }
+
     // Return unless enabled
     if (programRunning == false)
     {
@@ -1960,6 +1981,6 @@ void loop()
 
     // Background Processes
     TrafficManager();
-    //updateViewPage();
     executeProgram();
+    //updateViewPage();
 }

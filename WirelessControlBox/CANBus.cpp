@@ -53,6 +53,18 @@ uint8_t CANBus::processFrame()
             Serial.println((incoming.byte[1] + 3));
             return incoming.byte[1] + 3;
         }
+        if (incoming.id == 0x101)
+        {
+            Serial.print("Value: ");
+            Serial.println(101);
+            return 101;
+        }
+        if (incoming.id == 0x100)
+        {
+            Serial.print("Value: ");
+            Serial.println(100);
+            return 100;
+        }
     }
     return 0;
 }
