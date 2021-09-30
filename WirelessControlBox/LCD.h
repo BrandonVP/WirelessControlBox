@@ -15,7 +15,8 @@ extern uint8_t SmallFont[];
 #define GT9271_RESET 41   //CTP RESET
 #define GT9271_INT   48   //CTP  INT
 
-UTFT myGLCD(SSD1963_800480, 38, 39, 40, 41);  //(byte model, int RS, int WR, int CS, int RST)
+//UTFT myGLCD;  //(byte model, int RS, int WR, int CS, int RST)
+//UTFT myGLCD(SSD1963_800480, 38, 39, 40, 41);  //(byte model, int RS, int WR, int CS, int RST)
 
 const PROGMEM unsigned char GTP_CFG_DATA[] =
 {

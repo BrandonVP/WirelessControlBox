@@ -20,21 +20,28 @@ Disable program edit when program is running
     End Todo List
 =========================================================*/
 
+
 #pragma once
+#define main_
+
+//#include "common.h"
 #include <Wire.h>
 #include <LinkedList.h>
 #include <memorysaver.h>
 #include <SD.h>
 #include <SPI.h>
-#include <UTFT.h>
+//#include <UTFT.h>
 #include "LCD.h"
-#include "AxisPos.h"
+//#include "AxisPos.h"
 #include "CANBus.h"
 #include "SDCard.h"
 #include "Program.h"
 #include "definitions.h"
 #include "icons.h"
 #include <stdint.h>
+#include "extern.h"
+
+UTFT myGLCD(SSD1963_800480, 38, 39, 40, 41);
 
 // For touch controls
 uint16_t x, y;
@@ -91,6 +98,31 @@ uint32_t timer = 0;
 
 uint8_t errorMessageReturn = 2;
 
+/*
+#ifdef __arm__
+// should use uinstd.h to define sbrk but Due causes a conflict
+extern "C" char* sbrk(int incr);
+#else  // __ARM__
+extern char* __brkval;
+#endif  // __arm__
+
+int freeMemory() {
+    char top;
+#ifdef __arm__
+    return &top - reinterpret_cast<char*>(sbrk(0));
+#elif defined(CORE_TEENSY) || (ARDUINO > 103 && ARDUINO != 151)
+    return &top - __brkval;
+#else  // __arm__
+    return __brkval ? &top - __brkval : &top - __malloc_heap_start;
+#endif  // __arm__
+}
+*/
+extern "C" char* sbrk(int incr);
+
+int freeMemory() {
+    char top;
+    return &top - reinterpret_cast<char*>(sbrk(0));
+}
 
 /*=========================================================
     Framework Functions
@@ -375,6 +407,36 @@ void waitForItRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 }
 
 // Highlights square buttons when selected and sends CAN message, used by manual control
+void waitForItRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, CAN_Message frame)
+{
+    myGLCD.setColor(THEME_BACKGROUND);
+    myGLCD.drawRect(x1, y1, x2, y2);
+
+    uint8_t  ss[1];
+    unsigned long timer1 = millis();
+    unsigned long timer2 = millis();
+
+    // Hacked work around for not fullying understanding the Touch LCD hardware, needs reworked
+    while ((millis() - timer1 < 5))
+    {
+        readGT9271TouchAddr(0x814e, ss, 1);
+        if ((ss[0] & 0x80) != 0)  // touch status   Software touch interrupt  
+        {
+            readGT9271TouchLocation(touchLocations, 10);
+            if ((millis() - timer2 > 70))
+            {
+                can1.sendFrame(frame);
+                timer2 = millis();
+            }
+            timer1 = millis();
+        }
+    }
+
+    myGLCD.setColor(MENU_BUTTON_BORDER);
+    myGLCD.drawRect(x1, y1, x2, y2);
+}
+
+// Highlights square buttons when selected and sends CAN message, used by manual control
 void waitForItRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t txId, byte data[])
 {
     myGLCD.setColor(THEME_BACKGROUND);
@@ -403,7 +465,6 @@ void waitForItRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t 
     myGLCD.setColor(MENU_BUTTON_BORDER);
     myGLCD.drawRect(x1, y1, x2, y2);
 }
-
 
 /*=========================================================
     Manual control Functions
@@ -460,17 +521,19 @@ void drawManualControl(uint16_t x = 146, uint16_t y = 80, bool drawGrip = true)
         drawSquareBtn(360, 240, 450, 295, F("Close"), MENU_BUTTON_COLOR, MENU_BUTTON_BORDER, MENU_BUTTON_TEXT, ALIGN_CENTER);
     }
 }
-
+CAN_Message manual;
 // Draw page button function
 void manualControlButtons(uint16_t x1 = 146, uint16_t y1 = 80, bool drawGrip = true)
 {
     // Mutiply is a future funtion to allow movement of multiple angles at a time instead of just 1
-    uint8_t multiply = 1;
+    const uint8_t multiply = 1;
 
     // Enables revese
-    uint8_t reverse = 0x10;
+    const int8_t reverse = 0x10;
 
-    byte data[8] = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    
+
+ 
 
     // LCD touch funtions
     uint8_t  ss[1];
@@ -487,44 +550,44 @@ void manualControlButtons(uint16_t x1 = 146, uint16_t y1 = 80, bool drawGrip = t
             // Axis 1 Up
             if ((x >= 146) && (x <= 200))
             {
-                data[1] = 1 * multiply;
-                waitForItRect(146, 80, 200, 140, txIdManual, data);
-                data[1] = 0;
+                manual.data[1] = 1 * multiply;
+                waitForItRect(146, 80, 200, 140, manual);
+                manual.data[1] = 0;
             }
             // Axis 2 Up
             if ((x >= 200) && (x <= 254))
             {
-                data[2] = 1 * multiply;
-                waitForItRect(200, 80, 254, 140, txIdManual, data);
-                data[2] = 0;
+                manual.data[2] = 1 * multiply;
+                waitForItRect(200, 80, 254, 140, manual);
+                manual.data[2] = 0;
             }
             // Axis 3 Up
             if ((x >= 254) && (x <= 308))
             {
-                data[3] = 1 * multiply;
-                waitForItRect(254, 80, 308, 140, txIdManual, data);
-                data[3] = 0;
+                manual.data[3] = 1 * multiply;
+                waitForItRect(254, 80, 308, 140, manual);
+                manual.data[3] = 0;
             }
             // Axis 4 Up
             if ((x >= 308) && (x <= 362))
             {
-                data[4] = 1 * multiply;
-                waitForItRect(308, 80, 362, 140, txIdManual, data);
-                data[4] = 0;
+                manual.data[4] = 1 * multiply;
+                waitForItRect(308, 80, 362, 140, manual);
+                manual.data[4] = 0;
             }
             // Axis 5 Up
             if ((x >= 362) && (x <= 416))
             {
-                data[5] = 1 * multiply;
-                waitForItRect(362, 80, 416, 140, txIdManual, data);
-                data[5] = 0;
+                manual.data[5] = 1 * multiply;
+                waitForItRect(362, 80, 416, 140, manual);
+                manual.data[5] = 0;
             }
             // Axis 6 Up
             if ((x >= 416) && (x <= 470))
             {
-                data[6] = 1 * multiply;
-                waitForItRect(416, 80, 470, 140, txIdManual, data);
-                data[6] = 0;
+                manual.data[6] = 1 * multiply;
+                waitForItRect(416, 80, 470, 140, manual);
+                manual.data[6] = 0;
             }
         }
         if ((y >= (y1 + 60)) && (y <= (y1 + 120)))
@@ -532,44 +595,44 @@ void manualControlButtons(uint16_t x1 = 146, uint16_t y1 = 80, bool drawGrip = t
             // Axis 1 Down
             if ((x >= 156) && (x <= 200))
             {
-                data[1] = (1 * multiply) + reverse;
-                waitForItRect(146, 140, 200, 200, txIdManual, data);
-                data[1] = 0;
+                manual.data[1] = (1 * multiply) + reverse;
+                waitForItRect(146, 140, 200, 200, manual);
+                manual.data[1] = 0;
             }
             // Axis 2 Down
             if ((x >= 200) && (x <= 254))
             {
-                data[2] = (1 * multiply) + reverse;
-                waitForItRect(200, 140, 254, 200, txIdManual, data);
-                data[2] = 0;
+                manual.data[2] = (1 * multiply) + reverse;
+                waitForItRect(200, 140, 254, 200, manual);
+                manual.data[2] = 0;
             }
             // Axis 3 Down
             if ((x >= 254) && (x <= 308))
             {
-                data[3] = (1 * multiply) + reverse;
-                waitForItRect(254, 140, 308, 200, txIdManual, data);
-                data[3] = 0;
+                manual.data[3] = (1 * multiply) + reverse;
+                waitForItRect(254, 140, 308, 200, manual);
+                manual.data[3] = 0;
             }
             // Axis 4 Down
             if ((x >= 308) && (x <= 362))
             {
-                data[4] = (1 * multiply) + reverse;
-                waitForItRect(308, 140, 362, 200, txIdManual, data);
-                data[4] = 0;
+                manual.data[4] = (1 * multiply) + reverse;
+                waitForItRect(308, 140, 362, 200, manual);
+                manual.data[4] = 0;
             }
             // Axis 5 Down
             if ((x >= 362) && (x <= 416))
             {
-                data[5] = (1 * multiply) + reverse;
-                waitForItRect(362, 140, 416, 200, txIdManual, data);
-                data[5] = 0;
+                manual.data[5] = (1 * multiply) + reverse;
+                waitForItRect(362, 140, 416, 200, manual);
+                manual.data[5] = 0;
             }
             // Axis 6 Down
             if ((x >= 416) && (x <= 470))
             {
-                data[6] = (1 * multiply) + reverse;
-                waitForItRect(416, 140, 470, 200, txIdManual, data);
-                data[6] = 0;
+                manual.data[6] = (1 * multiply) + reverse;
+                waitForItRect(416, 140, 470, 200, manual);
+                manual.data[6] = 0;
             }
         }
         if ((y >= (y1 + 160)) && (y <= (y1 + 215)))
@@ -591,16 +654,16 @@ void manualControlButtons(uint16_t x1 = 146, uint16_t y1 = 80, bool drawGrip = t
             if ((x >= 270) && (x <= 360))
             {
                 // Grip open
-                data[7] = 1 * multiply;
-                waitForItRect(270, 240, 360, 295, txIdManual, data);
-                data[7] = 0;
+                manual.data[7] = 1 * multiply;
+                waitForItRect(270, 240, 360, 295, manual);
+                manual.data[7] = 0;
             }
             if ((x >= 360) && (x <= 450))
             {
                 // Grip close
-                data[7] = (1 * multiply) + reverse;
-                waitForItRect(360, 240, 450, 295, txIdManual, data);
-                data[7] = 0;
+                manual.data[7] = (1 * multiply) + reverse;
+                waitForItRect(360, 240, 450, 295, manual);
+                manual.data[7] = 0;
             }
         }
     }
@@ -652,7 +715,7 @@ void updateViewPage()
         axisPos.sendRequest(can1);
         if (currentPage == 1)
         {
-            axisPos.drawAxisPos(myGLCD);
+            axisPos.drawAxisPosUpdate();
         }
         timer = millis();
     }
@@ -1435,20 +1498,23 @@ void drawMenu()
 void setup() {
     Serial.begin(115200);
     Serial3.begin(57600);
+    //myTransfer.begin(Serial3);
     Wire.begin();        // join i2c bus (address optional for master)
 
+    //can1.start();
+        
     bool hasFailed = sdCard.startSD();
     if (!hasFailed)
     {
-        //Serial.println("SD failed");
+        Serial.println("SD failed");
     }
     else if (hasFailed)
     {
-        //Serial.println("SD Running");
+        Serial.println("SD Running");
     }
 
     randomSeed(analogRead(0));
-
+    /*
     delay(300);
     pinMode(GT9271_RESET, OUTPUT);
     pinMode(GT9271_INT, OUTPUT);
@@ -1494,7 +1560,7 @@ void setup() {
 
         uint8_t re = GT9271_Send_Cfg((uint8_t*)GTP_CFG_DATA, sizeof(GTP_CFG_DATA));
     }
-
+    */
     // Setup the LCD
     myGLCD.InitLCD();
     // -------------------------------------------------------------
@@ -1514,6 +1580,13 @@ void setup() {
     
     print_icon(48, 420, robotarm);
     timer = millis();
+
+    manual.id = txIdManual;
+    manual.data[0] = 0x01;
+    for (uint8_t i = 1; i < 8; i++)
+    {
+        manual.data[i] = 0x00;
+    }
 }
 
 // Page control framework
@@ -1535,8 +1608,7 @@ void pageControl()
         if (!hasDrawn)
         {
             drawView();
-            axisPos.drawAxisPos(myGLCD);
-            axisPos.drawAxisPos(myGLCD);
+            axisPos.drawAxisPos();
             hasDrawn = true;
         }
         // Call buttons if any
@@ -1769,51 +1841,45 @@ void TrafficManager()
     case 0: // No traffic
 
         break;
-
     case 1: // C1 lower
-        axisPos.updateAxisPos(can1, ARM1_RX);
+        axisPos.updateAxisPos();
         if (currentPage == 1)
         {
-            axisPos.drawAxisPos(myGLCD);
+            axisPos.drawAxisPosUpdate();
         }
         break;
-
     case 2: //  C1 Upper
-        axisPos.updateAxisPos(can1, ARM1_RX);
+        axisPos.updateAxisPos();
         if (currentPage == 1)
         {
-            axisPos.drawAxisPos(myGLCD);
+            axisPos.drawAxisPosUpdate();
         }
         break;
-
     case 3: // C1 Confirmation
         Arm1Ready = true;
         Arm2Ready = true;
         Serial.println("Arm1Ready");
         break;
-
     case 4: // C2 Lower
-        axisPos.updateAxisPos(can1, ARM2_RX);
+        axisPos.updateAxisPos();
         if (currentPage == 1)
         {
-            axisPos.drawAxisPos(myGLCD);
+            axisPos.drawAxisPosUpdate();
         }
         break;
-
     case 5: // C2 Upper
-        axisPos.updateAxisPos(can1, ARM2_RX);
+        axisPos.updateAxisPos();
         if (currentPage == 1)
         {
-            axisPos.drawAxisPos(myGLCD);
+            axisPos.drawAxisPosUpdate();
         }
         break;
-
     case 6: // C2 Confirmation
         Arm1Ready = true;
         Arm2Ready = true;
         Serial.println("Arm2Ready");
         break;
-    
+
     case 101: // eStop Activated
         eStopActivated = true;
         drawErrorMSG(F("Error"), F("eStop"), F("Activated"));
@@ -1973,6 +2039,13 @@ void executeProgram()
     }
 }
 
+void updateAxisPosition()
+{
+    axisPos.updateAxisPos();
+}
+
+uint32_t timer22 = 0;
+
 //
 void loop()
 {
@@ -1982,5 +2055,24 @@ void loop()
     // Background Processes
     TrafficManager();
     executeProgram();
-    //updateViewPage();
+    updateAxisPosition();
+
+/*    
+    if (millis() - timer22 > 2000)
+    {
+        uint8_t setHomeID[8] = { 0x01, 0x03, 0x00, 0x50, 0x80, 0x00, 0x00, 0x00 };
+        can1.sendFrame(0xA1, setHomeID);
+        timer22 = millis();
+
+        Serial.println("Sending");
+        Serial3.write(0xFF);
+        Serial3.write(0x111);
+        for (uint8_t i = 0; i < 8; i++)
+        {
+            Serial3.write(0x0A);
+        }
+        
+
+    }
+  */  
 }

@@ -1,61 +1,103 @@
-// 
-// 
-// Serial out debugging will make program unstable / lock up
-// A end of message check of 0xFF is sent between each message
 #include "SerialManager.h"
 
-void SerialManager::startSerial()
+//#define DEBUG_READFRAME
+//#define DEBUG_SENDFRAME
+
+// Returns true when full packet is recieved
+bool SerialManager::readFrame(CAN_Message &rxCAN)
 {
-	//Serial3.begin(19200); 
+    if (Serial3.available() > 0)
+    {
+        uint8_t recByte = Serial3.read();
+        switch (state)
+        {
+        case START_BYTE:
+#if defined DEBUG_READFRAME
+            Serial.print("STARTING_BYTE: ");
+            Serial.println(recByte, 16);
+#endif
+            if (recByte == STARTING_BYTE)
+            {
+                state = PACKET_LENGTH;
+                return false;
+            }
+            break;
+        case PACKET_LENGTH:
+#if defined DEBUG_READFRAME
+            Serial.print("PACKET_LENGTH: ");
+            Serial.println(recByte, 16);
+#endif
+            state = CAN_BUS_ID;
+            if (recByte == PACKET_SIZE)
+            {
+                packetIndex = 0;
+                return false;
+            }
+            else
+            {
+                // Bad packet
+                state = START_BYTE;
+            }
+            break;
+        case CAN_BUS_ID:
+#if defined DEBUG_READFRAME
+            Serial.print("CAN_BUS_ID: ");
+            Serial.println(recByte, 16);
+#endif
+            rxCAN.id = recByte;
+            state = CAN_BUS_DATA;
+            break;
+        case CAN_BUS_DATA:
+#if defined DEBUG_READFRAME
+            Serial.print("CAN_BUS_DATA: ");
+            Serial.println(recByte, 16);
+#endif
+            rxCAN.data[packetIndex] = recByte;
+            packetIndex++;
+            if (packetIndex == PACKET_SIZE - 1)
+            {
+                state = END_BYTE;
+            }
+            break;
+        case END_BYTE:
+#if defined DEBUG_READFRAME
+            Serial.print("END_BYTE: ");
+            Serial.println(recByte, 16);
+#endif
+            if (recByte == ENDING_BYTE)
+            {
+                state = START_BYTE;
+                
+#if defined DEBUG_READFRAME
+                Serial.println("RECEIVED");
+                Serial.println("");
+#endif
+                return true;
+            }
+            else
+            {
+                // packet failed restart
+                state = START_BYTE;
+#if defined DEBUG_READFRAME
+                Serial.println("FAILED");
+#endif
+            }
+            break;
+        }
+    }
+    return false;
 }
 
 //
-bool SerialManager::byteInbox()
+void SerialManager::sendFrame(CAN_Message txCAN)
 {
-	if (Serial3.available() > 0)
-	{
-		//Serial.print("Bytes in Que: ");
-		//Serial.println(Serial3.available());
-	}
-	if (Serial3.available() >= 10)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
 
-//
-void SerialManager::readFrame(CAN_FRAME1 &rxCAN)
-{
-	//if ((Serial3.available() >= 9) && (Serial3.read() == FLOW_CONTROL_VALUE))
-	if ((Serial3.available() >= 10))
-	{
-		uint32_t watchDog = millis();
-
-		// This code is blocking but should only run if needed one time at startup when AxisPos sends first request for current angles
-		while (Serial3.read() != FLOW_CONTROL_VALUE && millis() - watchDog < 400)
-		{
-			// Read until flow control value is hit
-			// This auto aligns the messages if misaligned at startup
-		}
-		rxCAN.id = Serial3.read();
-		for (uint8_t i = 0; i < ARRAY_SIZE; i++)
-		{
-			rxCAN.byte[i] = Serial3.read();
-		}
-	}
-}
-
-//
-void SerialManager::sendFrame(CAN_FRAME1 txCAN)
-{
-	Serial3.write(0xFF);
+	Serial3.write(0xFE);
+	Serial3.write(0x09);
 	Serial3.write(txCAN.id);
 	for (uint8_t i = 0; i < ARRAY_SIZE; i++)
 	{
-		Serial3.write(txCAN.byte[i]);
+		Serial3.write(txCAN.data[i]);
 	}
+	Serial3.write(0xFD);
 }

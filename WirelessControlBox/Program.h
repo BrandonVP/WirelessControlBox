@@ -1,7 +1,11 @@
-// Program.h
+/*
+ Name:    Program.h
+ Created: 11/15/2020 8:27:18 AM
+ Author:  Brandon Van Pelt
+*/
 
-#ifndef _Program_h
-#define _Program_h
+#ifndef _PROGRAM_H
+#define _PROGRAM_H
 
 #if defined(ARDUINO) && ARDUINO >= 100
 	#include "arduino.h"
@@ -32,4 +36,4 @@ class Program
 	uint8_t getGrip();
 };
 
-#endif
+#endif // _PROGRAM_H

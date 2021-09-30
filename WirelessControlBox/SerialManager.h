@@ -1,7 +1,10 @@
 // SerialManager.h
-
+#pragma once
 #ifndef _SerialManager_h
 #define _SerialManager_h
+
+//#include "common.h"
+#include "can_buffer.h"
 
 #if defined(ARDUINO) && ARDUINO >= 100
 	#include "arduino.h"
@@ -9,23 +12,27 @@
 	#include "WProgram.h"
 #endif
 
-#define FLOW_CONTROL_VALUE 0xFF
-#define SIZE_OF_FRAME 10
 #define ARRAY_SIZE 8
 
-typedef struct CAN_FRAME1 {
-	uint16_t id;
-	uint8_t byte[8];
-} CAN_FRAME1;
+// States
+#define START_BYTE              (0)
+#define PACKET_LENGTH           (1)
+#define CAN_BUS_ID              (2)
+#define CAN_BUS_DATA            (3)
+#define END_BYTE                (4)
+// 
+#define STARTING_BYTE           (0xFE)
+#define ENDING_BYTE             (0xFD)
+#define PACKET_SIZE             (0x09)
 
 class SerialManager
 {
 private:
-
+	uint8_t state = 0;
+	uint8_t packetIndex = 0;
+	CAN_Message CAN_FRAME1;
 public:
-	bool byteInbox();
-	void startSerial();
-	void readFrame(CAN_FRAME1&);
-	void sendFrame(CAN_FRAME1);
+	bool readFrame(CAN_Message&);
+	void sendFrame(CAN_Message);
 };
 #endif

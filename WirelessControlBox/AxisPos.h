@@ -1,8 +1,15 @@
-// AxisPos.h
+/*
+ Name:    AxisPos.h
+ Created: 11/15/2020 8:27:18 AM
+ Author:  Brandon Van Pelt
+*/
+
 #include "CANBus.h"
 #include <UTFT.h>
-#ifndef _AxisPos_h
-#define _AxisPos_h
+#include "can_buffer.h"
+
+#ifndef _AXISPOS_H
+#define _AXISPOS_H
 
 #define LOWER 0x01
 #define ARM1ID 0xA0
@@ -17,8 +24,6 @@
 #else
 	#include "WProgram.h"
 #endif
-
-class CANBus;
 
 class AxisPos
 {
@@ -37,21 +42,38 @@ class AxisPos
 	 uint16_t a4c2 = 0;
 	 uint16_t a5c2 = 0;
 	 uint16_t a6c2 = 0;
+
+	 // Draw angle values for channel 1
+	 bool draw_a1c1 = false;
+	 bool draw_a2c1 = false;
+	 bool draw_a3c1 = false;
+	 bool draw_a4c1 = false;
+	 bool draw_a5c1 = false;
+	 bool draw_a6c1 = false;
+	 // Draw angle values for channel 2
+	 bool draw_a1c2 = false;
+	 bool draw_a2c2 = false;
+	 bool draw_a3c2 = false;
+	 bool draw_a4c2 = false;
+	 bool draw_a5c2 = false;
+	 bool draw_a6c2 = false;
+
  public:
-	void drawAxisPos(UTFT);
-	void updateAxisPos(CANBus, uint8_t);
+	void drawAxisPosUpdate();
+	void drawAxisPos();
+	void updateAxisPos();
 	void sendRequest(CANBus);
-	int getA1C1();
-	int getA2C1();
-	int getA3C1();
-	int getA4C1();
-	int getA5C1();
-	int getA6C1();
-	int getA1C2();
-	int getA2C2();
-	int getA3C2();
-	int getA4C2();
-	int getA5C2();
-	int getA6C2();
+	uint16_t getA1C1();
+	uint16_t getA2C1();
+	uint16_t getA3C1();
+	uint16_t getA4C1();
+	uint16_t getA5C1();
+	uint16_t getA6C1();
+	uint16_t getA1C2();
+	uint16_t getA2C2();
+	uint16_t getA3C2();
+	uint16_t getA4C2();
+	uint16_t getA5C2();
+	uint16_t getA6C2();
 };
-#endif
+#endif // _AXISPOS_H

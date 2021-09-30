@@ -11,9 +11,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Wire-1.0", "WirelessControl
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UTFT-0.0.0", "WirelessControlBox\Libraries\UTFT\0.0.0\UTFT\UTFT-0.0.0.vcxitems", "{FC43FB80-ACBB-4F5B-BBCF-222AF18F1F32}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SerialTransfer-3.1.2", "WirelessControlBox\Libraries\SerialTransfer\3.1.2\SerialTransfer\SerialTransfer-3.1.2.vcxitems", "{69EB3B1A-4890-497F-9B26-F5F39D5B00BE}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		WirelessControlBox\Libraries\SPI\1.0\SPI\SPI-1.0.vcxitems*{147ba986-f7e0-4b08-973f-0899a660ebfa}*SharedItemsImports = 9
+		WirelessControlBox\Libraries\SerialTransfer\3.1.2\SerialTransfer\SerialTransfer-3.1.2.vcxitems*{69eb3b1a-4890-497f-9b26-f5f39d5b00be}*SharedItemsImports = 9
+		WirelessControlBox\Libraries\SerialTransfer\3.1.2\SerialTransfer\SerialTransfer-3.1.2.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
 		WirelessControlBox\Libraries\SPI\1.0\SPI\SPI-1.0.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
 		WirelessControlBox\Libraries\UTFT\0.0.0\UTFT\UTFT-0.0.0.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
 		WirelessControlBox\Libraries\Wire\1.0\Wire\Wire-1.0.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
