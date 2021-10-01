@@ -65,7 +65,7 @@ LinkedList<Program*> runList = LinkedList<Program*>();
 // Current selected program
 uint8_t selectedProgram = 0;
 
-// CAN message ID and frame, value can be changed in manualControlButtons
+// CAN message ID and frame, value can be changed by manualControlButtons
 uint16_t txIdManual = ARM1_MANUAL;
 
 // Execute variables
@@ -431,7 +431,6 @@ void waitForItRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, CAN_Messa
             timer1 = millis();
         }
     }
-
     myGLCD.setColor(MENU_BUTTON_BORDER);
     myGLCD.drawRect(x1, y1, x2, y2);
 }
@@ -2071,8 +2070,6 @@ void loop()
         {
             Serial3.write(0x0A);
         }
-        
-
     }
   */  
 }
