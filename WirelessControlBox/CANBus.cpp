@@ -102,21 +102,21 @@ uint8_t CANBus::processFrame()
 #endif
             return incoming.data[1] + 3;
         }
-        if (incoming.id == 0x101)
+        if (incoming.id == 0xA1)
         {
 #if defined DEBUG_processFrame
             Serial.print("Value: ");
-            Serial.println(101);
+            Serial.println(A1);
 #endif
-            return 101;
+            return 0xA1;
         }
-        if (incoming.id == 0x100)
+        if (incoming.id == 0xA0)
         {
 #if defined DEBUG_processFrame
             Serial.print("Value: ");
-            Serial.println(100);
+            Serial.println(A0);
 #endif
-            return 100;
+            return 0xA0;
         }
     }
     return 0;

@@ -98,6 +98,8 @@ uint32_t timer = 0;
 
 uint8_t errorMessageReturn = 2;
 
+bool drawEstopMessage = false;
+
 /*
 #ifdef __arm__
 // should use uinstd.h to define sbrk but Due causes a conflict
@@ -378,6 +380,7 @@ void waitForIt(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
             readGT9271TouchLocation(touchLocations, 10);
             timer = millis();
         }
+        backgroundProcess();
     }
 
     myGLCD.setColor(MENU_BUTTON_BORDER);
@@ -400,6 +403,7 @@ void waitForItRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
             readGT9271TouchLocation(touchLocations, 10);
             timer = millis();
         }
+        backgroundProcess();
     }
 
     myGLCD.setColor(MENU_BUTTON_BORDER);
@@ -430,6 +434,7 @@ void waitForItRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, CAN_Messa
             }
             timer1 = millis();
         }
+        backgroundProcess();
     }
     myGLCD.setColor(MENU_BUTTON_BORDER);
     myGLCD.drawRect(x1, y1, x2, y2);
@@ -459,6 +464,7 @@ void waitForItRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t 
             }
             timer1 = millis();
         }
+        backgroundProcess();
     }
 
     myGLCD.setColor(MENU_BUTTON_BORDER);
@@ -529,10 +535,6 @@ void manualControlButtons(uint16_t x1 = 146, uint16_t y1 = 80, bool drawGrip = t
 
     // Enables revese
     const int8_t reverse = 0x10;
-
-    
-
- 
 
     // LCD touch funtions
     uint8_t  ss[1];
@@ -1715,6 +1717,16 @@ bool drawErrorMSG(String title, String eMessage1, String eMessage2)
     drawRoundBtn(285, 180, 405, 215, "Cancel", MENU_BUTTON_COLOR, MENU_BUTTON_COLOR, MENU_BUTTON_TEXT, ALIGN_CENTER);
 }
 
+bool drawAlert(String title, String eMessage1, String eMessage2)
+{
+    drawSquareBtn(150, 100, 450, 220, "", MENU_BACKGROUND, MENU_BUTTON_BORDER, MENU_BUTTON_COLOR, ALIGN_CENTER);
+    drawSquareBtn(150, 100, 450, 130, title, THEME_BACKGROUND, MENU_BUTTON_BORDER, MENU_BUTTON_BORDER, ALIGN_LEFT);
+    drawSquareBtn(151, 151, 449, 175, eMessage1, MENU_BACKGROUND, MENU_BACKGROUND, MENU_BUTTON_TEXT, ALIGN_CENTER);
+    drawSquareBtn(151, 175, 449, 200, eMessage2, MENU_BACKGROUND, MENU_BACKGROUND, MENU_BUTTON_TEXT, ALIGN_CENTER);
+    drawRoundBtn(405, 100, 450, 130, "X", MENU_BUTTON_COLOR, MENU_BUTTON_BORDER, MENU_BUTTON_TEXT, ALIGN_CENTER);
+
+}
+
 void errorMSGButtons()
 {
     // Touch screen controls
@@ -1879,12 +1891,17 @@ void TrafficManager()
         Serial.println("Arm2Ready");
         break;
 
-    case 101: // eStop Activated
-        eStopActivated = true;
-        drawErrorMSG(F("Error"), F("eStop"), F("Activated"));
+    case 0xA1: // eStop Activated
+        if (!drawEstopMessage)
+        {
+            eStopActivated = true;
+            drawAlert(F("Emergency Stop"), F("Button"), F("Activated"));
+            drawEstopMessage = true;
+        }
         break;
 
-    case 100:// eStop De-Activated
+    case 0xA0:// eStop De-Activated
+        drawEstopMessage = false;
         eStopActivated = false;
         hasDrawn = false;
         break;
@@ -2045,6 +2062,12 @@ void updateAxisPosition()
 
 uint32_t timer22 = 0;
 
+void backgroundProcess()
+{
+    TrafficManager();
+    executeProgram();
+    updateAxisPosition();
+}
 //
 void loop()
 {
@@ -2052,9 +2075,7 @@ void loop()
     pageControl();
 
     // Background Processes
-    TrafficManager();
-    executeProgram();
-    updateAxisPosition();
+    backgroundProcess();
 
 /*    
     if (millis() - timer22 > 2000)

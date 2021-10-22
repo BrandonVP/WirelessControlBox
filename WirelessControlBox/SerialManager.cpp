@@ -91,13 +91,12 @@ bool SerialManager::readFrame(CAN_Message &rxCAN)
 //
 void SerialManager::sendFrame(CAN_Message txCAN)
 {
-
-	Serial3.write(0xFE);
-	Serial3.write(0x09);
+	Serial3.write(STARTING_BYTE);
+	Serial3.write(PACKET_SIZE);
 	Serial3.write(txCAN.id);
 	for (uint8_t i = 0; i < ARRAY_SIZE; i++)
 	{
 		Serial3.write(txCAN.data[i]);
 	}
-	Serial3.write(0xFD);
+	Serial3.write(ENDING_BYTE);
 }

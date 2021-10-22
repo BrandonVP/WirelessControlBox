@@ -75,7 +75,7 @@ Can only be executed in Privileged modes.
 __attribute__((always_inline)) static __INLINE void __enable_irq(void)
 {
 	__ASM volatile ("cpsie i");
-}
+}//
 
 
 /** \brief  Disable IRQ Interrupts
@@ -85,7 +85,7 @@ Can only be executed in Privileged modes.
 */
 __attribute__((always_inline)) static __INLINE void __disable_irq(void)
 {
-	__ASM volatile ("cpsid i");
+	//__ASM volatile ("cpsid i");
 }
 
 #ifndef __CLEARCORE__
@@ -99,7 +99,7 @@ __attribute__((always_inline)) static __INLINE uint32_t __get_CONTROL(void)
 {
 	uint32_t result;
 
-	__ASM volatile ("MRS %0, control" : "=r" (result));
+	//__ASM volatile ("MRS %0, control" : "=r" (result));
 	return(result);
 }
 
@@ -112,7 +112,7 @@ This function writes the given value to the Control Register.
 */
 __attribute__((always_inline)) static __INLINE void __set_CONTROL(uint32_t control)
 {
-	__ASM volatile ("MSR control, %0" : : "r" (control));
+	//__ASM volatile ("MSR control, %0" : : "r" (control));
 }
 
 
@@ -126,7 +126,7 @@ __attribute__((always_inline)) static __INLINE uint32_t __get_IPSR(void)
 {
 	uint32_t result;
 
-	__ASM volatile ("MRS %0, ipsr" : "=r" (result));
+	//__ASM volatile ("MRS %0, ipsr" : "=r" (result));
 	return(result);
 }
 
@@ -141,7 +141,7 @@ __attribute__((always_inline)) static __INLINE uint32_t __get_APSR(void)
 {
 	uint32_t result;
 
-	__ASM volatile ("MRS %0, apsr" : "=r" (result));
+	//__ASM volatile ("MRS %0, apsr" : "=r" (result));
 	return(result);
 }
 
@@ -156,7 +156,7 @@ __attribute__((always_inline)) static __INLINE uint32_t __get_xPSR(void)
 {
 	uint32_t result;
 
-	__ASM volatile ("MRS %0, xpsr" : "=r" (result));
+	//__ASM volatile ("MRS %0, xpsr" : "=r" (result));
 	return(result);
 }
 
@@ -171,7 +171,7 @@ __attribute__((always_inline)) static __INLINE uint32_t __get_PSP(void)
 {
 	register uint32_t result;
 
-	__ASM volatile ("MRS %0, psp\n"  : "=r" (result));
+	//__ASM volatile ("MRS %0, psp\n"  : "=r" (result));
 	return(result);
 }
 
@@ -184,7 +184,7 @@ This function assigns the given value to the Process Stack Pointer (PSP).
 */
 __attribute__((always_inline)) static __INLINE void __set_PSP(uint32_t topOfProcStack)
 {
-	__ASM volatile ("MSR psp, %0\n" : : "r" (topOfProcStack));
+	//__ASM volatile ("MSR psp, %0\n" : : "r" (topOfProcStack));
 }
 
 
@@ -198,7 +198,7 @@ __attribute__((always_inline)) static __INLINE uint32_t __get_MSP(void)
 {
 	register uint32_t result;
 
-	__ASM volatile ("MRS %0, msp\n" : "=r" (result));
+	//__ASM volatile ("MRS %0, msp\n" : "=r" (result));
 	return(result);
 }
 
@@ -211,7 +211,7 @@ This function assigns the given value to the Main Stack Pointer (MSP).
 */
 __attribute__((always_inline)) static __INLINE void __set_MSP(uint32_t topOfMainStack)
 {
-	__ASM volatile ("MSR msp, %0\n" : : "r" (topOfMainStack));
+	//__ASM volatile ("MSR msp, %0\n" : : "r" (topOfMainStack));
 }
 
 
@@ -225,7 +225,7 @@ __attribute__((always_inline)) static __INLINE uint32_t __get_PRIMASK(void)
 {
 	uint32_t result;
 
-	__ASM volatile ("MRS %0, primask" : "=r" (result));
+	//__ASM volatile ("MRS %0, primask" : "=r" (result));
 	return(result);
 }
 
@@ -238,7 +238,7 @@ This function assigns the given value to the Priority Mask Register.
 */
 __attribute__((always_inline)) static __INLINE void __set_PRIMASK(uint32_t priMask)
 {
-	__ASM volatile ("MSR primask, %0" : : "r" (priMask));
+	//__ASM volatile ("MSR primask, %0" : : "r" (priMask));
 }
 #else
 // Additions for Clear Core to reduce errors
