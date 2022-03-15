@@ -17,9 +17,10 @@
 // States
 #define START_BYTE              (0)
 #define PACKET_LENGTH           (1)
-#define CAN_BUS_ID              (2)
-#define CAN_BUS_DATA            (3)
-#define END_BYTE                (4)
+#define CAN_BUS_ID1              (2)
+#define CAN_BUS_ID2              (3)
+#define CAN_BUS_DATA            (4)
+#define END_BYTE                (5)
 // 
 #define STARTING_BYTE           (0xFE)
 #define ENDING_BYTE             (0xFD)

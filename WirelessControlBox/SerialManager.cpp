@@ -1,6 +1,6 @@
 #include "SerialManager.h"
 
-//#define DEBUG_READFRAME
+#define DEBUG_READFRAME
 //#define DEBUG_SENDFRAME
 
 // Returns true when full packet is recieved
@@ -27,7 +27,7 @@ bool SerialManager::readFrame(CAN_Message &rxCAN)
             Serial.print("PACKET_LENGTH: ");
             Serial.println(recByte, 16);
 #endif
-            state = CAN_BUS_ID;
+            state = CAN_BUS_ID1;
             if (recByte == PACKET_SIZE)
             {
                 packetIndex = 0;
@@ -39,12 +39,20 @@ bool SerialManager::readFrame(CAN_Message &rxCAN)
                 state = START_BYTE;
             }
             break;
-        case CAN_BUS_ID:
+        case CAN_BUS_ID1:
 #if defined DEBUG_READFRAME
-            Serial.print("CAN_BUS_ID: ");
+            Serial.print("CAN_BUS_I1D: ");
             Serial.println(recByte, 16);
 #endif
             rxCAN.id = recByte;
+            state = CAN_BUS_ID2;
+            break;
+        case CAN_BUS_ID2:
+#if defined DEBUG_READFRAME
+            Serial.print("CAN_BUS_ID2: ");
+            Serial.println(recByte, 16);
+#endif
+            rxCAN.id += recByte;
             state = CAN_BUS_DATA;
             break;
         case CAN_BUS_DATA:
@@ -91,9 +99,12 @@ bool SerialManager::readFrame(CAN_Message &rxCAN)
 //
 void SerialManager::sendFrame(CAN_Message txCAN)
 {
+    const byte ID_FILLER = 0x00;
 	Serial3.write(STARTING_BYTE);
 	Serial3.write(PACKET_SIZE);
 	Serial3.write(txCAN.id);
+    Serial3.write(0x300);
+    //Serial3.write(ID_FILLER);
 	for (uint8_t i = 0; i < ARRAY_SIZE; i++)
 	{
 		Serial3.write(txCAN.data[i]);
